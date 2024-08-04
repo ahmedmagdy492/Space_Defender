@@ -125,8 +125,21 @@ void Texture2D::Init() {
 	unsigned char* data = stbi_load(imagePath.c_str(), &imgWidth, &imgHeight, &nChannels, 0);
 
 	if (!data)
-		throw new std::string("Unable to load provided image");
+		throw std::string("Unable to load provided image");
 
+	SetupTexture(position);
+
+	glGenTextures(1, &textureId);
+	glActiveTexture(GL_TEXTURE0 + textureUnit);
+	++textureUnit;
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, imgPixelFormat, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	stbi_image_free(data);
+}
+
+void Texture2D::SetupTexture(Vector3 position) {
 	Vector3 ndcTopLeft, ndcTopRight, ndcBottomLeft, ndcBottomRight;
 	ndcTopLeft.x = ConvertToNDCForX(position.x);
 	ndcTopLeft.y = ConvertToNDCForY(position.y);
@@ -172,15 +185,35 @@ void Texture2D::Init() {
 	glGenBuffers(1, &eboId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elementBuffer), elementBuffer, GL_DYNAMIC_DRAW);
+}
 
-	glGenTextures(1, &textureId);
-	glActiveTexture(GL_TEXTURE0 + textureUnit);
-	++textureUnit;
-	glBindTexture(GL_TEXTURE_2D, textureId);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, imgPixelFormat, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(data);
+void Texture2D::UpdateTexture(Vector3 position) {
+	Vector3 ndcTopLeft, ndcTopRight, ndcBottomLeft, ndcBottomRight;
+	ndcTopLeft.x = ConvertToNDCForX(position.x);
+	ndcTopLeft.y = ConvertToNDCForY(position.y);
+	ndcTopLeft.z = 0.0f;
+
+	ndcTopRight.x = ConvertToNDCForX(position.x + width);
+	ndcTopRight.y = ConvertToNDCForY(position.y);
+	ndcTopRight.z = 0.0f;
+
+	ndcBottomLeft.x = ConvertToNDCForX(position.x);
+	ndcBottomLeft.y = ConvertToNDCForY(position.y + height);
+	ndcBottomLeft.z = 0.0f;
+
+	ndcBottomRight.x = ConvertToNDCForX(position.x + width);
+	ndcBottomRight.y = ConvertToNDCForY(position.y + height);
+	ndcBottomRight.z = 0.0f;
+
+	float vertexBuffer[] = {
+		ndcTopLeft.x,     ndcTopLeft.y,     ndcTopLeft.z,     0.0f, 1.0f,
+		ndcTopRight.x,    ndcTopRight.y,    ndcTopRight.z,    1.0f, 1.0f,
+		ndcBottomLeft.x,  ndcBottomLeft.y,  ndcBottomLeft.z,  0.0f, 0.0f,
+		ndcBottomRight.x, ndcBottomRight.y, ndcBottomRight.z, 1.0f, 0.0f
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, vboId);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexBuffer), vertexBuffer);
 }
 
 void Texture2D::Draw() {

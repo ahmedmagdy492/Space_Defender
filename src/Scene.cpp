@@ -1,32 +1,48 @@
 #include "Models.h"
 
 void MenuScene::Init() {
-	Vector3 pos(10, 10, 0);
-	Color color(1.0, 0.0, 0.0);
-	Rectangle* rect = new Rectangle(pos, 100, 100, color);
-	rect->Init();
-	shapes.push_back(rect);
-
-	Vector3 texPos(150, 150, 0);
-	Texture2D *texture = new Texture2D(texPos, 30, 30, "resources/ship.png", GL_RGBA);
-	texture->Init();
-	shapes.push_back(texture);
 }
 
 void MenuScene::ProcessInput(GLFWwindow* window) {
-
 }
 
 void MenuScene::Render() {
-	for (auto& shape : shapes) {
-		shape->Draw();
-	}
 }
 
 MenuScene::~MenuScene() {
-	for (auto& shape : shapes) {
-		delete shape;
-	}
 
-	shapes.clear();
+}
+
+// Game Scene
+
+void GameScene::Init() {
+	Vector3 position;
+	position.x = (SCREEN_WIDTH - PLAYER_SHIP_WIDTH) / 2;
+	position.y = SCREEN_HEIGHT - PLAYER_SHIP_HEIGHT - 20;
+
+	player = new Player(position);
+}
+
+void GameScene::ProcessInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		if (player->texture->position.x > 3) {
+			Vector3 velocity(-3 * 0.2, 0, 0);
+			player->Move(velocity);
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		if ((player->texture->position.x + player->texture->width) < SCREEN_WIDTH) {
+			Vector3 velocity(3 * 0.2, 0, 0);
+			player->Move(velocity);
+		}
+	}
+}
+
+void GameScene::Render() {
+	player->Render();
+}
+
+GameScene::~GameScene() {
+	delete player;
+	player = nullptr;
 }

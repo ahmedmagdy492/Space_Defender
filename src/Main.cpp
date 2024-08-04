@@ -32,16 +32,18 @@ int main(int argc, char* argv[]) {
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	// init game objects
-	MenuScene menuScene;
-	menuScene.Init();
+	GameScene gameScene;
+	gameScene.Init();
 
 	while (!glfwWindowShouldClose(window)) {
 		ProcessInput(window);
 
+		gameScene.ProcessInput(window);
+
 		glClearColor(0.0235f, 0.0706f, 0.1333f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		menuScene.Render();
+		gameScene.Render();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

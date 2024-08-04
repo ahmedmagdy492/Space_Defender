@@ -79,6 +79,12 @@ public:
 		int location = glGetUniformLocation(programId, name.c_str());
 		glUniform1f(location, value);
 	}
+
+	void SetVector3(const std::string& name, Vector3 vec) {
+		int location = glGetUniformLocation(programId, name.c_str());
+		float values[] = { vec.x, vec.y, vec.z };
+		glUniform3fv(location, 1, values);
+	}
 };
 
 class Shape {
@@ -118,6 +124,8 @@ class Texture2D : public Shape {
 private:
 	unsigned int textureId;
 	GLenum imgPixelFormat;
+
+	void SetupTexture(Vector3 newPosition);
 public:
 	int width, height;
 	int imgWidth, imgHeight;
@@ -125,12 +133,33 @@ public:
 
 	Texture2D(Vector3 position, int width, int height, std::string imagePath, GLenum imgPixelFormat);
 
+	void UpdateTexture(Vector3 position);
+
 	void Init();
 
 	void Draw();
 
 	void SetOption(GLenum name, int value);
 };
+
+
+// Game Logic Models
+
+class Player {
+public:
+	Texture2D* texture;
+
+	Player(Vector3 position);
+
+	void Move(Vector3 velocity);
+
+	void Render();
+
+	~Player();
+};
+
+
+// Scenes Models
 
 class Scene {
 public:
@@ -153,4 +182,18 @@ public:
 	void Render();
 
 	~MenuScene();
+};
+
+class GameScene : public Scene {
+private:
+	Player* player;
+
+public:
+	void Init();
+
+	void ProcessInput(GLFWwindow* window);
+
+	void Render();
+
+	~GameScene();
 };
