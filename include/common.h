@@ -6,6 +6,9 @@
 #define PLAYER_SHIP_WIDTH  50
 #define PLAYER_SHIP_HEIGHT 50
 
+#define BULLET_WIDTH 25
+#define BULLET_HEIGHT 25
+
 struct Color {
 	float red;
 	float green;

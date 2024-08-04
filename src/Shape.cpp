@@ -2,8 +2,6 @@
 
 #include "Models.h"
 
-static int textureUnit = 0;
-
 Shape::Shape(std::string vertexShaderPath, std::string fragmentShaderPath) {
 	try {
 		std::ifstream vertexIfStream;
@@ -25,6 +23,7 @@ Shape::Shape(std::string vertexShaderPath, std::string fragmentShaderPath) {
 		fragmentIfStream.close();
 
 		shaderProgram = new ShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+		std::cout << "Shader Program Created: " << shaderProgram->GetProgramId() << std::endl;
 	}
 	catch (std::ifstream::failure e) {
 		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
@@ -106,12 +105,13 @@ void Rectangle::Draw() {
 }
 
 // Texture Shape
-Texture2D::Texture2D(Vector3 position, int width, int height, std::string imagePath, GLenum imgPixelFormat) : imgWidth(0), imgHeight(0), Shape("shaders/texture_vertex_shader.vert", "shaders/texture_fragment_shader.frag") {
+Texture2D::Texture2D(Vector3 position, int width, int height, std::string imagePath, GLenum imgPixelFormat, unsigned int textureUnit) : imgWidth(0), imgHeight(0), textureUnit(textureUnit), Shape("shaders/texture_vertex_shader.vert", "shaders/texture_fragment_shader.frag") {
 	this->imagePath = imagePath;
 	this->position = position;
 	this->imgPixelFormat = imgPixelFormat;
 	this->width = width;
 	this->height = height;
+	this->textureUnit = textureUnit;
 }
 
 void Texture2D::SetOption(GLenum name, int value) {
@@ -127,11 +127,10 @@ void Texture2D::Init() {
 	if (!data)
 		throw std::string("Unable to load provided image");
 
-	SetupTexture(position);
+	SetupTextureBuffers(position);
 
 	glGenTextures(1, &textureId);
-	glActiveTexture(GL_TEXTURE0 + textureUnit);
-	++textureUnit;
+	glActiveTexture(textureUnit);
 	glBindTexture(GL_TEXTURE_2D, textureId);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, imgPixelFormat, GL_UNSIGNED_BYTE, data);
@@ -139,7 +138,7 @@ void Texture2D::Init() {
 	stbi_image_free(data);
 }
 
-void Texture2D::SetupTexture(Vector3 position) {
+void Texture2D::SetupTextureBuffers(Vector3 position) {
 	Vector3 ndcTopLeft, ndcTopRight, ndcBottomLeft, ndcBottomRight;
 	ndcTopLeft.x = ConvertToNDCForX(position.x);
 	ndcTopLeft.y = ConvertToNDCForY(position.y);
@@ -218,8 +217,8 @@ void Texture2D::UpdateTexture(Vector3 position) {
 
 void Texture2D::Draw() {
 	shaderProgram->Use();
-	shaderProgram->SetInt("inTexture", 0);
-
+	shaderProgram->SetInt("inTexture", textureUnit);
+	
 	glBindVertexArray(vaoId);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

@@ -61,6 +61,10 @@ public:
 		glDeleteShader(fragmentShader);
 	}
 
+	unsigned int GetProgramId() {
+		return programId;
+	}
+
 	void Use() {
 		glUseProgram(programId);
 	}
@@ -125,13 +129,14 @@ private:
 	unsigned int textureId;
 	GLenum imgPixelFormat;
 
-	void SetupTexture(Vector3 newPosition);
+	void SetupTextureBuffers(Vector3 newPosition);
 public:
 	int width, height;
 	int imgWidth, imgHeight;
 	std::string imagePath;
+	int textureUnit;
 
-	Texture2D(Vector3 position, int width, int height, std::string imagePath, GLenum imgPixelFormat);
+	Texture2D(Vector3 position, int width, int height, std::string imagePath, GLenum imgPixelFormat, unsigned int textureUnit);
 
 	void UpdateTexture(Vector3 position);
 
@@ -148,6 +153,7 @@ public:
 class Player {
 public:
 	Texture2D* texture;
+	float health;
 
 	Player(Vector3 position);
 
@@ -156,6 +162,20 @@ public:
 	void Render();
 
 	~Player();
+};
+
+class Bullet {
+public:
+	Texture2D* texture;
+	float power;
+
+	Bullet(Vector3 position, float power);
+
+	void Move(Vector3 velocity);
+
+	void Render();
+
+	~Bullet();
 };
 
 
@@ -187,6 +207,8 @@ public:
 class GameScene : public Scene {
 private:
 	Player* player;
+	std::vector<Bullet*> bullets;
+	unsigned int currentKeyPress = 0;
 
 public:
 	void Init();
