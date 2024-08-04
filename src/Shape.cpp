@@ -2,39 +2,6 @@
 
 #include "Models.h"
 
-Shape::Shape(std::string vertexShaderPath, std::string fragmentShaderPath) {
-	try {
-		std::ifstream vertexIfStream;
-		std::ifstream fragmentIfStream;
-		vertexIfStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		fragmentIfStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-		vertexIfStream.open(vertexShaderPath);
-		fragmentIfStream.open(fragmentShaderPath);
-		std::stringstream vertexStrStream, fragmentStrStream;
-
-		vertexStrStream << vertexIfStream.rdbuf();
-		fragmentStrStream << fragmentIfStream.rdbuf();
-
-		std::string vertexShaderSrc = vertexStrStream.str();
-		std::string fragmentShaderSrc = fragmentStrStream.str();
-
-		vertexIfStream.close();
-		fragmentIfStream.close();
-
-		shaderProgram = new ShaderProgram(vertexShaderSrc, fragmentShaderSrc);
-		std::cout << "Shader Program Created: " << shaderProgram->GetProgramId() << std::endl;
-	}
-	catch (std::ifstream::failure e) {
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
-		throw std::string("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
-	}
-}
-
-Shape::~Shape() {
-	delete shaderProgram;
-	shaderProgram = nullptr;
-}
 
 float Shape::ConvertToNDCForX(float x) {
 	return ((2.0f * x) / SCREEN_WIDTH) - 1.0f;
@@ -44,7 +11,7 @@ float Shape::ConvertToNDCForY(float y) {
 	return 1.0f - ((2.0f * y) / SCREEN_HEIGHT);
 }
 
-Rectangle::Rectangle(Vector3 position, int width, int height, Color color) : width(width), height(height), Shape("shaders/default_vertex_shader.vert", "shaders/default_fragment_shader.frag") {
+Rectangle::Rectangle(Vector3 position, int width, int height, Color color) : width(width), height(height) {
 	this->position = position;
 	this->color = color;
 }
@@ -99,16 +66,14 @@ void Rectangle::Init() {
 }
 
 void Rectangle::Draw() {
-	shaderProgram->Use();
 	glBindVertexArray(vaoId);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 // Texture Shape
-Texture2D::Texture2D(Vector3 position, int width, int height, std::string imagePath, GLenum imgPixelFormat, unsigned int textureUnit) : imgWidth(0), imgHeight(0), textureUnit(textureUnit), Shape("shaders/texture_vertex_shader.vert", "shaders/texture_fragment_shader.frag") {
+Texture2D::Texture2D(Vector3 position, int width, int height, std::string imagePath, unsigned int textureUnit) : imgWidth(0), imgHeight(0), textureUnit(textureUnit) {
 	this->imagePath = imagePath;
 	this->position = position;
-	this->imgPixelFormat = imgPixelFormat;
 	this->width = width;
 	this->height = height;
 	this->textureUnit = textureUnit;
@@ -123,6 +88,22 @@ void Texture2D::Init() {
 	int nChannels;
 	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(imagePath.c_str(), &imgWidth, &imgHeight, &nChannels, 0);
+
+	std::cout << "image " << imagePath << " channels: " << nChannels << std::endl;
+
+	GLenum imgPixelFormat = GL_RGBA;
+
+	switch (nChannels) {
+	case 1:
+		imgPixelFormat = GL_RED;
+		break;
+	case 3:
+		imgPixelFormat = GL_RGB;
+		break;
+	case 4:
+		imgPixelFormat = GL_RGBA;
+		break;
+	}
 
 	if (!data)
 		throw std::string("Unable to load provided image");
@@ -216,9 +197,6 @@ void Texture2D::UpdateTexture(Vector3 position) {
 }
 
 void Texture2D::Draw() {
-	shaderProgram->Use();
-	shaderProgram->SetInt("inTexture", textureUnit);
-	
 	glBindVertexArray(vaoId);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

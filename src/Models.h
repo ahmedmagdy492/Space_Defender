@@ -103,11 +103,6 @@ protected:
 public:
 	Vector3 position;
 	Color color;
-	ShaderProgram* shaderProgram;
-
-	Shape(std::string vertexShaderPath, std::string fragShaderPath);
-
-	~Shape();
 
 	virtual void Init() = 0;
 	virtual void Draw() = 0;
@@ -127,7 +122,6 @@ public:
 class Texture2D : public Shape {
 private:
 	unsigned int textureId;
-	GLenum imgPixelFormat;
 
 	void SetupTextureBuffers(Vector3 newPosition);
 public:
@@ -136,7 +130,7 @@ public:
 	std::string imagePath;
 	int textureUnit;
 
-	Texture2D(Vector3 position, int width, int height, std::string imagePath, GLenum imgPixelFormat, unsigned int textureUnit);
+	Texture2D(Vector3 position, int width, int height, std::string imagePath, unsigned int textureUnit);
 
 	void UpdateTexture(Vector3 position);
 
@@ -208,7 +202,13 @@ class GameScene : public Scene {
 private:
 	Player* player;
 	std::vector<Bullet*> bullets;
+	std::vector<Bullet*> bulletsPool;
+	std::vector<Bullet*> bulletsToRemove;
+	ShaderProgram* shaderProgram = nullptr;
 	unsigned int currentKeyPress = 0;
+	Texture2D* background = nullptr;
+
+	void FillInBulletsPool(int noOfBullets);
 
 public:
 	void Init();
