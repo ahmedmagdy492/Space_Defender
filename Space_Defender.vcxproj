@@ -149,17 +149,19 @@
     <ClInclude Include="include\KHR\khrplatform.h" />
     <ClInclude Include="include\stb_image\stb_image.h" />
     <ClInclude Include="src\Models.h" />
-    <ClInclude Include="src\Scene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\default_fragment_shader.frag" />
     <None Include="shaders\default_vertex_shader.vert" />
+    <None Include="shaders\texture_fragment_shader.frag" />
+    <None Include="shaders\texture_vertex_shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\glad\glad.c" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Shape.cpp" />
+    <ClCompile Include="src\stb_image.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

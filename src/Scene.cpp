@@ -6,6 +6,11 @@ void MenuScene::Init() {
 	Rectangle* rect = new Rectangle(pos, 100, 100, color);
 	rect->Init();
 	shapes.push_back(rect);
+
+	Vector3 texPos(150, 150, 0);
+	Texture2D *texture = new Texture2D(texPos, 30, 30, "resources/ship.png", GL_RGBA);
+	texture->Init();
+	shapes.push_back(texture);
 }
 
 void MenuScene::ProcessInput(GLFWwindow* window) {

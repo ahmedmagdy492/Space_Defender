@@ -1,6 +1,6 @@
 #pragma once
 
-#define SCREEN_WIDTH 1024
+#define SCREEN_WIDTH 1366
 #define SCREEN_HEIGHT 768
 
 struct Color {

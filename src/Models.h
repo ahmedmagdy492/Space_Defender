@@ -9,6 +9,7 @@
 #include <GLFW\glfw3.h>
 
 #include "../include/common.h"
+#include "../include/stb_image/stb_image.h"
 
 class ShaderProgram {
 private:
@@ -63,19 +64,38 @@ public:
 	void Use() {
 		glUseProgram(programId);
 	}
+
+	void SetBool(const std::string& name, bool value) const {
+		int location = glGetUniformLocation(programId, name.c_str());
+		glUniform1i(location, (int)value);
+	}
+
+	void SetInt(const std::string& name, int value) const {
+		int location = glGetUniformLocation(programId, name.c_str());
+		glUniform1i(location, value);
+	}
+
+	void SetFloat(const std::string& name, float value) const {
+		int location = glGetUniformLocation(programId, name.c_str());
+		glUniform1f(location, value);
+	}
 };
 
 class Shape {
 protected:
 	unsigned int vboId;
 	unsigned int eboId;
+	unsigned int vaoId;
+
+	float ConvertToNDCForX(float x);
+	float ConvertToNDCForY(float y);
 
 public:
 	Vector3 position;
 	Color color;
 	ShaderProgram* shaderProgram;
 
-	Shape();
+	Shape(std::string vertexShaderPath, std::string fragShaderPath);
 
 	~Shape();
 
@@ -84,18 +104,32 @@ public:
 };
 
 class Rectangle : public Shape {
-private:
-	float ConvertToNDCForX(float x);
-	float ConvertToNDCForY(float y);
-
 public:
-	float width, height;
+	int width, height;
 
-	Rectangle(Vector3 position, float width, float height, Color color);
+	Rectangle(Vector3 position, int width, int height, Color color);
 
 	void Init();
 
 	void Draw();
+};
+
+class Texture2D : public Shape {
+private:
+	unsigned int textureId;
+	GLenum imgPixelFormat;
+public:
+	int width, height;
+	int imgWidth, imgHeight;
+	std::string imagePath;
+
+	Texture2D(Vector3 position, int width, int height, std::string imagePath, GLenum imgPixelFormat);
+
+	void Init();
+
+	void Draw();
+
+	void SetOption(GLenum name, int value);
 };
 
 class Scene {

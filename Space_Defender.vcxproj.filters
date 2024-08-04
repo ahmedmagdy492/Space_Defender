@@ -24,9 +24,6 @@
     <ClInclude Include="src\Models.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\glad\glad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -46,6 +43,8 @@
   <ItemGroup>
     <None Include="shaders\default_fragment_shader.frag" />
     <None Include="shaders\default_vertex_shader.vert" />
+    <None Include="shaders\texture_vertex_shader.vert" />
+    <None Include="shaders\texture_fragment_shader.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp">
@@ -58,6 +57,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\glad\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
