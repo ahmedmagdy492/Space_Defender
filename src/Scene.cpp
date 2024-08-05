@@ -61,6 +61,9 @@ void GameScene::Init() {
 	position.y = SCREEN_HEIGHT - PLAYER_SHIP_HEIGHT - 20;
 
 	player = new Player(position);
+
+	currentLevel = new Level("Level 1", false);
+	currentLevel->SpwanMonsters(20, 15);
 }
 
 void GameScene::ProcessInput(GLFWwindow* window) {
@@ -120,6 +123,14 @@ void GameScene::Render() {
 
 	shaderProgram->SetInt("inTexture", 0);
 	player->Render();
+
+
+	shaderProgram->SetInt("inTexture", 3);
+	for (auto& monster : currentLevel->monsters) {
+		Vector3 velocity(3, 0, 0);
+		monster->Move(velocity);
+		monster->Render();
+	}
 }
 
 GameScene::~GameScene() {
@@ -140,5 +151,9 @@ GameScene::~GameScene() {
 
 	if (background) {
 		delete background;
+	}
+
+	if (currentLevel) {
+		delete currentLevel;
 	}
 }

@@ -172,6 +172,33 @@ public:
 	~Bullet();
 };
 
+class Monster {
+public:
+	Texture2D* texture;
+	Vector3 initialPos;
+	float health;
+
+	Monster(Vector3 initialPos, float health);
+
+	void Render();
+
+	void Move(Vector3 velocity);
+
+	~Monster();
+};
+
+class Level {
+public:
+	std::string name;
+	bool isEndLevel = false;
+	std::vector<Monster*> monsters;
+
+	Level(std::string name, bool isEndLevel);
+
+	void SpwanMonsters(int noOfMonsters, float health);
+
+	~Level();
+};
 
 // Scenes Models
 
@@ -207,6 +234,7 @@ private:
 	ShaderProgram* shaderProgram = nullptr;
 	unsigned int currentKeyPress = 0;
 	Texture2D* background = nullptr;
+	Level* currentLevel = nullptr;
 
 	void FillInBulletsPool(int noOfBullets);
 
