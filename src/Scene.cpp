@@ -26,16 +26,21 @@ SceneManager::~SceneManager() {
 
 MenuScene::MenuScene(SceneManager* sceneManager) {
 	this->sceneManager = sceneManager;
-	bgImg = new ImageTemplate();
+	bgImg = new Image();
 	bgImg->LoadImage("resources/bg.png");
 	bgTexture = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, bgImg, GL_TEXTURE2);
 	bgTexture->Init();
 
+	titleImg = new Image();
+	titleImg->LoadImage("resources/title.png");
+	titleTexture = new Texture2D(Vector3((SCREEN_WIDTH - titleImg->width)/2, 40, 0), titleImg->width, titleImg->height, titleImg, GL_TEXTURE7);
+	titleTexture->Init();
+
 	Init();
 
-	btnImgs[0] = new ImageTemplate();
+	btnImgs[0] = new Image();
 	btnImgs[0]->LoadImage("resources/button1.png");
-	btnImgs[1] = new ImageTemplate();
+	btnImgs[1] = new Image();
 	btnImgs[1]->LoadImage("resources/button2.png");
 
 	int yPadding = 0;
@@ -111,6 +116,9 @@ void MenuScene::Render() {
 		shaderProgram->SetInt("inTexture", 5+i);
 		imgBtns[i]->Render();
 	}
+
+	shaderProgram->SetInt("inTexture", 7);
+	titleTexture->Draw();
 }
 
 MenuScene::~MenuScene() {
@@ -125,6 +133,15 @@ MenuScene::~MenuScene() {
 
 	if (bgTexture) {
 		delete bgTexture;
+	}
+
+	if (titleImg) {
+		titleImg->UnloadImage();
+		delete titleImg;
+	}
+
+	if (titleTexture) {
+		delete titleTexture;
 	}
 
 	for (int i = 0; i < NO_OF_UI_BTNS; ++i) {
@@ -193,26 +210,30 @@ void GameScene::Init() {
 
 GameScene::GameScene(SceneManager* sceneManager) {
 	this->sceneManager = sceneManager;
-	backgroundImg = new ImageTemplate();
+	backgroundImg = new Image();
 	backgroundImg->LoadImage("resources/bg.png");
 	background = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, backgroundImg, GL_TEXTURE2);
 	background->Init();
 
-	minus10Img = new ImageTemplate();
+	minus10Img = new Image();
 	minus10Img->LoadImage("resources/minus_10.png");
 	minus10 = new Texture2D(Vector3(-50, -50, 0), 30, 30, minus10Img, GL_TEXTURE4);
 	minus10->Init();
 
-	bulletImg = new ImageTemplate();
+	bulletImg = new Image();
 	bulletImg->LoadImageW("resources/bullet.png");
 
-	playerImg = new ImageTemplate();
+	playerImg = new Image();
 	playerImg->LoadImageW("resources/ship.png");
 
 	Init();
 }
 
 void GameScene::ProcessInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		sceneManager->SwitchToScene("MenuScene");
+	}
+
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		currentKeyPress = GLFW_KEY_LEFT;
 		if (player->texture->position.x > 3) {

@@ -14,13 +14,13 @@
 #include "../include/common.h"
 #include "../include/stb_image/stb_image.h"
 
-class ImageTemplate {
+class Image {
 public:
 	int width, height;
 	GLenum imgPixelFormat;
 	unsigned char* data = nullptr;
 
-	ImageTemplate() : width(0), height(0), imgPixelFormat(0) {
+	Image() : width(0), height(0), imgPixelFormat(0) {
 
 	}
 
@@ -169,9 +169,9 @@ private:
 public:
 	int width, height;
 	int textureUnit;
-	ImageTemplate* image;
+	Image* image;
 
-	Texture2D(Vector3 position, int width, int height, ImageTemplate* img, unsigned int textureUnit);
+	Texture2D(Vector3 position, int width, int height, Image* img, unsigned int textureUnit);
 
 	void UpdateTexture(Vector3 position);
 
@@ -190,7 +190,7 @@ public:
 	Texture2D* texture;
 	float health;
 
-	Player(Vector3 position, ImageTemplate* img);
+	Player(Vector3 position, Image* img);
 
 	void Move(Vector3 velocity);
 
@@ -202,7 +202,7 @@ public:
 	Texture2D* texture;
 	float power;
 
-	Bullet(Vector3 position, float power, ImageTemplate* img);
+	Bullet(Vector3 position, float power, Image* img);
 
 	void Move(Vector3 velocity);
 
@@ -221,7 +221,7 @@ public:
 	MonsterMovingDirection direction = MonsterMovingDirection::Right;
 	float health;
 
-	Monster(Vector3 initialPos, float health, ImageTemplate* img);
+	Monster(Vector3 initialPos, float health, Image* img);
 
 	void Render();
 
@@ -233,7 +233,7 @@ public:
 	std::string name;
 	bool isEndLevel = false;
 	std::vector<Monster*> monsters;
-	ImageTemplate* monsterImg = nullptr;
+	Image* monsterImg = nullptr;
 
 	Level(std::string name, bool isEndLevel);
 
@@ -246,10 +246,10 @@ public:
 // UI Models
 class ImageButton {
 public:
-	ImageTemplate* img = nullptr;
+	Image* img = nullptr;
 	Texture2D* texture = nullptr;
 	
-	ImageButton(Vector3 position, ImageTemplate* img, unsigned int textureUnit) {
+	ImageButton(Vector3 position, Image* img, unsigned int textureUnit) {
 		this->img = img;
 		texture = new Texture2D(position, BTN_WIDTH, BTN_HEIGHT, img, textureUnit);
 		texture->Init();
@@ -294,10 +294,13 @@ public:
 
 class MenuScene : public Scene {
 private:
-	ImageTemplate* bgImg = nullptr;
+	Image* bgImg = nullptr;
 	Texture2D* bgTexture = nullptr;
 
-	ImageTemplate* btnImgs[NO_OF_UI_BTNS];
+	Image* titleImg = nullptr;
+	Texture2D* titleTexture = nullptr;
+
+	Image* btnImgs[NO_OF_UI_BTNS];
 	ImageButton* imgBtns[NO_OF_UI_BTNS];
 
 	ShaderProgram* shaderProgram = nullptr;
@@ -327,14 +330,14 @@ private:
 	Level* currentLevel = nullptr;
 
 	// textures declarations
-	ImageTemplate* backgroundImg = nullptr;
+	Image* backgroundImg = nullptr;
 	Texture2D* background = nullptr;
 
-	ImageTemplate* minus10Img = nullptr;
+	Image* minus10Img = nullptr;
 	Texture2D* minus10 = nullptr;
 
-	ImageTemplate* playerImg = nullptr;
-	ImageTemplate* bulletImg = nullptr;
+	Image* playerImg = nullptr;
+	Image* bulletImg = nullptr;
 
 	SceneManager* sceneManager = nullptr;
 

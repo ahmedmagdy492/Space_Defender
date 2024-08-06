@@ -1,6 +1,6 @@
 #include "Models.h"
 
-Player::Player(Vector3 position, ImageTemplate* img) : health(100) {
+Player::Player(Vector3 position, Image* img) : health(100) {
 	texture = new Texture2D(position, PLAYER_SHIP_WIDTH, PLAYER_SHIP_HEIGHT, img, GL_TEXTURE0);
 	texture->Init();
 }
@@ -17,7 +17,7 @@ void Player::Render() {
 }
 
 // Bullet methods
-Bullet::Bullet(Vector3 position, float power, ImageTemplate* img) : power(power) {
+Bullet::Bullet(Vector3 position, float power, Image* img) : power(power) {
 	texture = new Texture2D(position, BULLET_WIDTH, BULLET_HEIGHT, img, GL_TEXTURE1);
 	texture->Init();
 }
@@ -34,7 +34,7 @@ void Bullet::Render() {
 }
 
 
-Monster::Monster(Vector3 curPosition, float health, ImageTemplate* img) : initialPos(curPosition), health(health) {
+Monster::Monster(Vector3 curPosition, float health, Image* img) : initialPos(curPosition), health(health) {
 	texture = new Texture2D(curPosition, NORMAL_SHIP_WIDTH, NORMAL_SHIP_HEIGHT, img, GL_TEXTURE3);
 	texture->Init();
 }
@@ -68,7 +68,7 @@ void Monster::Move(Vector3 velocity) {
 }
 
 Level::Level(std::string name, bool isEndLevel) : name(name), isEndLevel(isEndLevel) {
-	monsterImg = new ImageTemplate();
+	monsterImg = new Image();
 	monsterImg->LoadImage("resources/monster.png");
 }
 

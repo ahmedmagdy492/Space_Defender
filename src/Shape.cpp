@@ -71,7 +71,7 @@ void Rectangle::Draw() {
 }
 
 // Texture Shape
-Texture2D::Texture2D(Vector3 position, int width, int height, ImageTemplate* img, unsigned int textureUnit) : textureUnit(textureUnit), textureId(0) {
+Texture2D::Texture2D(Vector3 position, int width, int height, Image* img, unsigned int textureUnit) : textureUnit(textureUnit), textureId(0) {
 	this->image = img;
 	this->position = position;
 	this->width = width;

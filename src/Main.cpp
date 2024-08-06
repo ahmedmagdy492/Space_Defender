@@ -2,19 +2,13 @@
 #include "Models.h"
 
 
-void ProcessInput(GLFWwindow* window) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-}
-
 int main(int argc, char* argv[]) {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Space Invaders", NULL, NULL);
+	GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Space Defender", NULL, NULL);
 
 	if (!window) {
 		std::cout << "GLFW failed to create a window" << std::endl;
@@ -23,7 +17,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	HWND windowHandle = glfwGetWin32Window(window);
-	SetWindowLongPtr(windowHandle, GWL_STYLE, GetWindowLongPtrA(windowHandle, GWL_STYLE) & ~(WS_MAXIMIZEBOX));
+	SetWindowLongPtr(windowHandle, GWL_STYLE, GetWindowLongPtrA(windowHandle, GWL_STYLE) & ~(WS_MAXIMIZEBOX | WS_THICKFRAME));
 
 	glfwMakeContextCurrent(window);
 
@@ -39,8 +33,6 @@ int main(int argc, char* argv[]) {
 	SceneManager sceneManager;
 
 	while (!glfwWindowShouldClose(window)) {
-		ProcessInput(window);
-
 		sceneManager.currentActiveScene->ProcessInput(window);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
