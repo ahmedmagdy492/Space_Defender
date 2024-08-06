@@ -18,6 +18,10 @@
 #define BULLET_POWER_LVL4 40
 #define BULLET_POWER_LVL5 50
 
+#define NO_OF_UI_BTNS 2
+#define BTN_WIDTH 300
+#define BTN_HEIGHT 200
+
 struct Color {
 	float red;
 	float green;

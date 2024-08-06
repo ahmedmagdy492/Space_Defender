@@ -1,16 +1,144 @@
 #include "Models.h"
 
+bool IsObjectClicked(Vector3 pos, int width, int height, Vector3 mousePos) {
+	return (mousePos.x >= pos.x && mousePos.x <= (pos.x + width)) && (mousePos.y >= pos.y && mousePos.y <= (pos.y + height));
+}
+
+SceneManager::SceneManager() {
+	GameScene* gameScene = new GameScene(this);
+	scenes.insert({ "GameScene", gameScene });
+	MenuScene* menuScene = new MenuScene(this);
+	scenes.insert({ "MenuScene", menuScene });
+	currentActiveScene = menuScene;
+}
+
+void SceneManager::SwitchToScene(const std::string& sceneName) {
+	std::unordered_map<std::string, Scene*>::iterator it = scenes.find(sceneName);
+	if (it != scenes.end()) {
+		currentActiveScene = scenes[it->first];
+	}
+}
+
+SceneManager::~SceneManager() {
+	delete scenes["GameScene"];
+	delete scenes["MenuScene"];
+}
+
+MenuScene::MenuScene(SceneManager* sceneManager) {
+	this->sceneManager = sceneManager;
+	bgImg = new ImageTemplate();
+	bgImg->LoadImage("resources/bg.png");
+	bgTexture = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, bgImg, GL_TEXTURE2);
+	bgTexture->Init();
+
+	Init();
+
+	btnImgs[0] = new ImageTemplate();
+	btnImgs[0]->LoadImage("resources/button1.png");
+	btnImgs[1] = new ImageTemplate();
+	btnImgs[1]->LoadImage("resources/button2.png");
+
+	int yPadding = 0;
+	for (int i = 0; i < NO_OF_UI_BTNS; ++i) {
+		imgBtns[i] = new ImageButton(
+			Vector3(
+				(SCREEN_WIDTH - BTN_WIDTH) / 2,
+				(SCREEN_HEIGHT - BTN_HEIGHT) / 2 + yPadding,
+				0.0f
+			), 
+			btnImgs[i], GL_TEXTURE5 + i);
+		yPadding += BTN_HEIGHT - 50;
+	}
+}
+
 void MenuScene::Init() {
+
+	try {
+		std::ifstream vertexIfStream;
+		std::ifstream fragmentIfStream;
+		vertexIfStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		fragmentIfStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+		vertexIfStream.open("shaders/texture_vertex_shader.vert");
+		fragmentIfStream.open("shaders/texture_fragment_shader.frag");
+		std::stringstream vertexStrStream, fragmentStrStream;
+
+		vertexStrStream << vertexIfStream.rdbuf();
+		fragmentStrStream << fragmentIfStream.rdbuf();
+
+		std::string vertexShaderSrc = vertexStrStream.str();
+		std::string fragmentShaderSrc = fragmentStrStream.str();
+
+		vertexIfStream.close();
+		fragmentIfStream.close();
+
+		shaderProgram = new ShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+
+		std::cout << "Shader Program Created: " << shaderProgram->GetProgramId() << std::endl;
+	}
+	catch (std::ifstream::failure e) {
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+		throw std::string("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
+	}
 }
 
 void MenuScene::ProcessInput(GLFWwindow* window) {
+	static bool isLeftMouseClicked = false;
+	if (!isLeftMouseClicked && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+		isLeftMouseClicked = true;
+		double x = 0, y = 0;
+		glfwGetCursorPos(window, &x, &y);
+
+		if (IsObjectClicked(imgBtns[0]->texture->position, BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
+			std::string gameScene = "GameScene";
+			sceneManager->SwitchToScene(gameScene);
+		}
+		else if (IsObjectClicked(imgBtns[1]->texture->position, BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
+			glfwSetWindowShouldClose(window, true);
+		}
+	}
+	else if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
+		isLeftMouseClicked = false;
+	}
 }
 
 void MenuScene::Render() {
+	shaderProgram->Use();
+	shaderProgram->SetInt("inTexture", 2);
+	bgTexture->Draw();
+
+	for (int i = 0; i < NO_OF_UI_BTNS; ++i) {
+		shaderProgram->SetInt("inTexture", 5+i);
+		imgBtns[i]->Render();
+	}
 }
 
 MenuScene::~MenuScene() {
+	if (shaderProgram) {
+		delete shaderProgram;
+	}
 
+	if (bgImg) {
+		bgImg->UnloadImage();
+		delete bgImg;
+	}
+
+	if (bgTexture) {
+		delete bgTexture;
+	}
+
+	for (int i = 0; i < NO_OF_UI_BTNS; ++i) {
+		if (btnImgs[i]) {
+			btnImgs[i]->UnloadImage();
+			delete btnImgs[i];
+		}
+	}
+
+	for (int i = 0; i < NO_OF_UI_BTNS; ++i) {
+		if (imgBtns[i]) {
+			delete imgBtns[i];
+		}
+	}
 }
 
 // Game Scene
@@ -63,7 +191,8 @@ void GameScene::Init() {
 	currentLevel->SpwanMonsters(50, 500);
 }
 
-GameScene::GameScene() {
+GameScene::GameScene(SceneManager* sceneManager) {
+	this->sceneManager = sceneManager;
 	backgroundImg = new ImageTemplate();
 	backgroundImg->LoadImage("resources/bg.png");
 	background = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, backgroundImg, GL_TEXTURE2);

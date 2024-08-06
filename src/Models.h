@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <unordered_map>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glad\glad.h>
@@ -241,6 +242,31 @@ public:
 	~Level();
 };
 
+
+// UI Models
+class ImageButton {
+public:
+	ImageTemplate* img = nullptr;
+	Texture2D* texture = nullptr;
+	
+	ImageButton(Vector3 position, ImageTemplate* img, unsigned int textureUnit) {
+		this->img = img;
+		texture = new Texture2D(position, BTN_WIDTH, BTN_HEIGHT, img, textureUnit);
+		texture->Init();
+	}
+
+	void Render() {
+		texture->Draw();
+	}
+
+	~ImageButton() {
+		if (texture) {
+			delete texture;
+		}
+	}
+};
+
+
 // Scenes Models
 
 class Scene {
@@ -252,11 +278,34 @@ public:
 	virtual void Render() = 0;
 };
 
+
+class SceneManager {
+public:
+	std::unordered_map<std::string, Scene*> scenes;
+	Scene* currentActiveScene = nullptr;
+
+	SceneManager();
+
+	void SwitchToScene(const std::string& sceneName);
+
+	~SceneManager();
+};
+
+
 class MenuScene : public Scene {
 private:
-	std::vector<Shape*> shapes;
+	ImageTemplate* bgImg = nullptr;
+	Texture2D* bgTexture = nullptr;
+
+	ImageTemplate* btnImgs[NO_OF_UI_BTNS];
+	ImageButton* imgBtns[NO_OF_UI_BTNS];
+
+	ShaderProgram* shaderProgram = nullptr;
+	SceneManager* sceneManager = nullptr;
 
 public:
+	MenuScene(SceneManager* sceneManager);
+
 	void Init();
 
 	void ProcessInput(GLFWwindow* window);
@@ -287,12 +336,14 @@ private:
 	ImageTemplate* playerImg = nullptr;
 	ImageTemplate* bulletImg = nullptr;
 
+	SceneManager* sceneManager = nullptr;
+
 	void FillInBulletsPool(int noOfBullets);
 
 	bool BulletCollidedWithMonster(Vector3 first, Vector3 other);
 
 public:
-	GameScene();
+	GameScene(SceneManager* sceneManager);
 
 	void Init();
 
