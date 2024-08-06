@@ -204,8 +204,9 @@ void GameScene::Init() {
 
 	FillInBulletsPool();
 
-	currentLevel = new Level("Level 1", false);
-	currentLevel->SpwanMonsters(50, 500);
+	currentLevel = new Level("Level", false);
+	currentLevel->SpwanMonsters(50, LEVEL_1_MONSTERS_POWER);
+	levelsFinished++;
 }
 
 GameScene::GameScene(SceneManager* sceneManager) {
@@ -264,10 +265,18 @@ void GameScene::ProcessInput(GLFWwindow* window) {
 }
 
 bool GameScene::BulletCollidedWithMonster(Vector3 bullet, Vector3 monster) {
-	return (bullet.x < monster.x + NORMAL_SHIP_WIDTH &&
-		bullet.x + BULLET_WIDTH > monster.x &&
-		bullet.y < monster.y + NORMAL_SHIP_HEIGHT &&
-		bullet.y + BULLET_HEIGHT > monster.y);
+	if (currentLevel->isEndLevel) {
+		return (bullet.x < monster.x + BIG_BOSS_WIDTH &&
+			bullet.x + BULLET_WIDTH > monster.x &&
+			bullet.y < monster.y + BIG_BOSS_HEGIHT &&
+			bullet.y + BULLET_HEIGHT > monster.y);
+	}
+	else {
+		return (bullet.x < monster.x + NORMAL_SHIP_WIDTH &&
+			bullet.x + BULLET_WIDTH > monster.x &&
+			bullet.y < monster.y + NORMAL_SHIP_HEIGHT &&
+			bullet.y + BULLET_HEIGHT > monster.y);
+	}
 }
 
 void GameScene::Render() {
@@ -293,6 +302,22 @@ void GameScene::Render() {
 		bulletsPool.push_back(bulletToRemove);
 	}
 	bulletsToRemove.clear();
+
+	if (this->currentLevel->monsters.size() == 0) {
+		bullets.clear();
+		delete currentLevel;
+ 		if ((levelsFinished % 10) == 0) {
+			currentLevel = new Level("Level", true);
+			currentLevel->SpwanMonsters(1, LEVEL_10_MONSTERS_POWER * levelsFinished);
+		}
+		else {
+			currentLevel = new Level("Level", false);
+			currentLevel->SpwanMonsters(NO_OF_MONSTERS, LEVEL_1_MONSTERS_POWER * levelsFinished);
+		}
+
+		++levelsFinished;
+		std::cout << "Changed to level " << levelsFinished << std::endl;
+	}
 
 	for (auto& bullet : bullets) {
 		bullet->Render();

@@ -73,17 +73,26 @@ Level::Level(std::string name, bool isEndLevel) : name(name), isEndLevel(isEndLe
 }
 
 void Level::SpwanMonsters(int noOfMonsters, float health) {
-	int xOffset = 60;
-	float x = 30, y = 30;
-	float spaceBetweenObjs = 20;
-	for (int i = 0; i < noOfMonsters; ++i) {
-		Monster* monster = new Monster(Vector3(x, y, 0), health, monsterImg);
+	if (isEndLevel) {
+		Monster* monster = new Monster(Vector3((SCREEN_WIDTH - 200) / 2, 30, 0), health, monsterImg);
+		monster->texture->width = BIG_BOSS_WIDTH;
+		monster->texture->height = BIG_BOSS_HEGIHT;
+		monster->texture->UpdateTexture(monster->texture->position);
 		monsters.push_back(monster);
-		x += xOffset + NORMAL_SHIP_WIDTH;
-		if (x >= SCREEN_WIDTH) {
-			x = 30;
-			// we should consider creating a reasonable no of objects to do not fill the whole screen with monsters
-			y += NORMAL_SHIP_HEIGHT + spaceBetweenObjs;
+	}
+	else {
+		int xOffset = 60;
+		float x = 30, y = 30;
+		float spaceBetweenObjs = 20;
+		for (int i = 0; i < noOfMonsters; ++i) {
+			Monster* monster = new Monster(Vector3(x, y, 0), health, monsterImg);
+			monsters.push_back(monster);
+			x += xOffset + NORMAL_SHIP_WIDTH;
+			if (x >= SCREEN_WIDTH) {
+				x = 30;
+				// we should consider creating a reasonable no of objects to do not fill the whole screen with monsters
+				y += NORMAL_SHIP_HEIGHT + spaceBetweenObjs;
+			}
 		}
 	}
 }

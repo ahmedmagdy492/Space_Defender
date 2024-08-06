@@ -270,6 +270,9 @@ public:
 // Scenes Models
 
 class Scene {
+protected:
+	int levelsFinished = 0;
+
 public:
 	virtual void Init() = 0;
 
