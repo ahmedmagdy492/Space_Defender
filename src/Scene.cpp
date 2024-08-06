@@ -60,7 +60,7 @@ void GameScene::Init() {
 	FillInBulletsPool();
 
 	currentLevel = new Level("Level 1", false);
-	currentLevel->SpwanMonsters(119, 15);
+	currentLevel->SpwanMonsters(50, 15);
 }
 
 GameScene::GameScene() {
@@ -164,8 +164,8 @@ void GameScene::Render() {
 
 	shaderProgram->SetInt("inTexture", 3);
 	for (auto& monster : currentLevel->monsters) {
-		/*Vector3 velocity(0.01, 0, 0);
-		monster->Move(velocity);*/
+		Vector3 velocity(.5f*.2f, 0.0f, 0.0f);
+		monster->Move(velocity);
 		monster->Render();
 	}
 }

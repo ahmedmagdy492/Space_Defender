@@ -45,7 +45,7 @@ void Monster::Render() {
 
 void Monster::Move(Vector3 velocity) {
 	if (direction == MonsterMovingDirection::Right) {
-		if (texture->position.x <= (initialPos.x + (velocity.x * 45))) {
+		if (texture->position.x <= (initialPos.x + (velocity.x * 5005))) {
 			texture->position.x += velocity.x;
 			texture->position.y += velocity.y;
 			texture->position.z += velocity.z;
@@ -55,7 +55,7 @@ void Monster::Move(Vector3 velocity) {
 		}
 	}
 	else if (direction == MonsterMovingDirection::Left) {
-		if (texture->position.x >= (initialPos.x - (velocity.x * 45))) {
+		if (texture->position.x >= (initialPos.x - (velocity.x * 5005))) {
 			texture->position.x -= velocity.x;
 			texture->position.y -= velocity.y;
 			texture->position.z -= velocity.z;
@@ -73,7 +73,7 @@ Level::Level(std::string name, bool isEndLevel) : name(name), isEndLevel(isEndLe
 }
 
 void Level::SpwanMonsters(int noOfMonsters, float health) {
-	int xOffset = 30;
+	int xOffset = 60;
 	float x = 30, y = 30;
 	float spaceBetweenObjs = 20;
 	for (int i = 0; i < noOfMonsters; ++i) {
