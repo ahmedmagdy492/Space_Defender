@@ -12,6 +12,12 @@
 #define BULLET_WIDTH 25
 #define BULLET_HEIGHT 25
 
+#define BULLET_POWER_LVL1 10
+#define BULLET_POWER_LVL2 20
+#define BULLET_POWER_LVL3 30
+#define BULLET_POWER_LVL4 40
+#define BULLET_POWER_LVL5 50
+
 struct Color {
 	float red;
 	float green;

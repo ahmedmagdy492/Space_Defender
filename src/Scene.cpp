@@ -17,7 +17,7 @@ MenuScene::~MenuScene() {
 
 void GameScene::FillInBulletsPool(int noOfBullets = 100) {
 	for (int i = 0; i < noOfBullets; ++i) {
-		Bullet* bullet = new Bullet(player->texture->position, 10, bulletImg);
+		Bullet* bullet = new Bullet(player->texture->position, BULLET_POWER_LVL1, bulletImg);
 		bulletsPool.push_back(bullet);
 	}
 }
@@ -60,7 +60,7 @@ void GameScene::Init() {
 	FillInBulletsPool();
 
 	currentLevel = new Level("Level 1", false);
-	currentLevel->SpwanMonsters(50, 15);
+	currentLevel->SpwanMonsters(50, 500);
 }
 
 GameScene::GameScene() {
@@ -68,6 +68,11 @@ GameScene::GameScene() {
 	backgroundImg->LoadImage("resources/bg.png");
 	background = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, backgroundImg, GL_TEXTURE2);
 	background->Init();
+
+	minus10Img = new ImageTemplate();
+	minus10Img->LoadImage("resources/minus_10.png");
+	minus10 = new Texture2D(Vector3(-50, -50, 0), 30, 30, minus10Img, GL_TEXTURE4);
+	minus10->Init();
 
 	bulletImg = new ImageTemplate();
 	bulletImg->LoadImageW("resources/bullet.png");
@@ -150,8 +155,15 @@ void GameScene::Render() {
 		else {
 			for (auto& monster : currentLevel->monsters) {
 				if (BulletCollidedWithMonster(bullet->texture->position, monster->texture->position)) {
+					monster->health -= bullet->power;
+					if (monster->health <= 0) {
+						monstersToRemove.push_back(monster);
+					}
+					else {
+						minus10->position = monster->texture->position;
+						minus10->UpdateTexture(minus10->position);
+					}
 					bulletsToRemove.push_back(bullet);
-					monstersToRemove.push_back(monster);
 					break;
 				}
 			}
@@ -168,6 +180,11 @@ void GameScene::Render() {
 		monster->Move(velocity);
 		monster->Render();
 	}
+
+	shaderProgram->SetInt("inTexture", 4);
+	minus10->position = Vector3(minus10->position.x, minus10->position.y-0.2f, 0.0f);
+	minus10->UpdateTexture(minus10->position);
+	minus10->Draw();
 }
 
 GameScene::~GameScene() {
@@ -193,6 +210,15 @@ GameScene::~GameScene() {
 		}
 
 		delete background;
+	}
+
+	if (minus10) {
+		if (minus10Img) {
+			minus10Img->UnloadImage();
+			delete minus10Img;
+		}
+
+		delete minus10;
 	}
 
 	if (playerImg) {

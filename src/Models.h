@@ -278,8 +278,12 @@ private:
 	Level* currentLevel = nullptr;
 
 	// textures declarations
-	Texture2D* background = nullptr;
 	ImageTemplate* backgroundImg = nullptr;
+	Texture2D* background = nullptr;
+
+	ImageTemplate* minus10Img = nullptr;
+	Texture2D* minus10 = nullptr;
+
 	ImageTemplate* playerImg = nullptr;
 	ImageTemplate* bulletImg = nullptr;
 
