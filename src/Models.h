@@ -19,6 +19,10 @@ public:
 	GLenum imgPixelFormat;
 	unsigned char* data = nullptr;
 
+	ImageTemplate() : width(0), height(0), imgPixelFormat(0) {
+
+	}
+
 	void LoadImage(std::string imagePath) {
 		stbi_set_flip_vertically_on_load(true);
 		int nChannels = 1;
@@ -268,6 +272,7 @@ private:
 	std::vector<Bullet*> bullets;
 	std::vector<Bullet*> bulletsPool;
 	std::vector<Bullet*> bulletsToRemove;
+	std::vector<Monster*> monstersToRemove;
 	ShaderProgram* shaderProgram = nullptr;
 	unsigned int currentKeyPress = 0;
 	Level* currentLevel = nullptr;
@@ -279,6 +284,8 @@ private:
 	ImageTemplate* bulletImg = nullptr;
 
 	void FillInBulletsPool(int noOfBullets);
+
+	bool BulletCollidedWithMonster(Vector3 first, Vector3 other);
 
 public:
 	GameScene();

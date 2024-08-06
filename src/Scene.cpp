@@ -82,14 +82,14 @@ void GameScene::ProcessInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		currentKeyPress = GLFW_KEY_LEFT;
 		if (player->texture->position.x > 3) {
-			Vector3 velocity(-3 * 0.2, 0, 0);
+			Vector3 velocity(-3.0f * 0.2f, 0.0f, 0.0f);
 			player->Move(velocity);
 		}
 	}
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 		currentKeyPress = GLFW_KEY_RIGHT;
 		if ((player->texture->position.x + player->texture->width) < SCREEN_WIDTH) {
-			Vector3 velocity(3 * 0.2, 0, 0);
+			Vector3 velocity(3.0f * 0.2f, 0.0f, 0.0f);
 			player->Move(velocity);
 		}
 	}
@@ -108,12 +108,27 @@ void GameScene::ProcessInput(GLFWwindow* window) {
 	}
 }
 
+bool GameScene::BulletCollidedWithMonster(Vector3 bullet, Vector3 monster) {
+	return (bullet.x < monster.x + NORMAL_SHIP_WIDTH &&
+		bullet.x + BULLET_WIDTH > monster.x &&
+		bullet.y < monster.y + NORMAL_SHIP_HEIGHT &&
+		bullet.y + BULLET_HEIGHT > monster.y);
+}
+
 void GameScene::Render() {
 	shaderProgram->Use();
 	shaderProgram->SetInt("inTexture", 2);
 	background->Draw();
 
 	shaderProgram->SetInt("inTexture", 1);
+
+	for (auto& monsterToBeRemoved : monstersToRemove) {
+		std::vector<Monster*>::iterator it = std::find(currentLevel->monsters.begin(), currentLevel->monsters.end(), monsterToBeRemoved);
+		if (it != currentLevel->monsters.end()) {
+			currentLevel->monsters.erase(it);
+		}
+	}
+	monstersToRemove.clear();
 
 	for (auto& bulletToRemove : bulletsToRemove) {
 		std::vector<Bullet*>::iterator it = std::find(bullets.begin(), bullets.end(), bulletToRemove);
@@ -122,15 +137,24 @@ void GameScene::Render() {
 		}
 		bulletsPool.push_back(bulletToRemove);
 	}
-
 	bulletsToRemove.clear();
 
 	for (auto& bullet : bullets) {
 		bullet->Render();
-		Vector3 velocity(0, -3 * 0.2, 0);
+		Vector3 velocity(0.0f, -3.0f * 0.2f, 0.0f);
 		bullet->Move(velocity);
+		
 		if ((bullet->texture->position.y + bullet->texture->height) < 0) {
 			bulletsToRemove.push_back(bullet);
+		}
+		else {
+			for (auto& monster : currentLevel->monsters) {
+				if (BulletCollidedWithMonster(bullet->texture->position, monster->texture->position)) {
+					bulletsToRemove.push_back(bullet);
+					monstersToRemove.push_back(monster);
+					break;
+				}
+			}
 		}
 	}
 
