@@ -99,6 +99,7 @@ void GameScene::ProcessInput(GLFWwindow* window) {
 			Bullet* bullet = bulletsPool[bulletsPool.size()-1];
 			bulletsPool.erase(bulletsPool.begin() + (bulletsPool.size() - 1));
 			bullet->texture->position = player->texture->position;
+			bullet->texture->UpdateTexture(player->texture->position);
 			bullets.push_back(bullet);
 		}
 	}
