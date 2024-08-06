@@ -17,10 +17,11 @@ MenuScene::~MenuScene() {
 
 void GameScene::FillInBulletsPool(int noOfBullets = 100) {
 	for (int i = 0; i < noOfBullets; ++i) {
-		Bullet* bullet = new Bullet(Vector3(0, 0, 0), 10);
+		Bullet* bullet = new Bullet(player->texture->position, 10, bulletImg);
 		bulletsPool.push_back(bullet);
 	}
 }
+
 
 void GameScene::Init() {
 	try {
@@ -45,25 +46,36 @@ void GameScene::Init() {
 		shaderProgram = new ShaderProgram(vertexShaderSrc, fragmentShaderSrc);
 
 		std::cout << "Shader Program Created: " << shaderProgram->GetProgramId() << std::endl;
-
-		background = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, "resources/bg.png", GL_TEXTURE2);
-		background->Init();
-
-		FillInBulletsPool();
 	}
 	catch (std::ifstream::failure e) {
 		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
 		throw std::string("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
 	}
 
-	Vector3 position;
-	position.x = (SCREEN_WIDTH - PLAYER_SHIP_WIDTH) / 2;
-	position.y = SCREEN_HEIGHT - PLAYER_SHIP_HEIGHT - 20;
+	Vector3 playerPos;
+	playerPos.x = (SCREEN_WIDTH - PLAYER_SHIP_WIDTH) / 2;
+	playerPos.y = SCREEN_HEIGHT - PLAYER_SHIP_HEIGHT - 20;
+	player = new Player(playerPos, playerImg);
 
-	player = new Player(position);
+	FillInBulletsPool();
 
 	currentLevel = new Level("Level 1", false);
-	currentLevel->SpwanMonsters(20, 15);
+	currentLevel->SpwanMonsters(119, 15);
+}
+
+GameScene::GameScene() {
+	backgroundImg = new ImageTemplate();
+	backgroundImg->LoadImage("resources/bg.png");
+	background = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, backgroundImg, GL_TEXTURE2);
+	background->Init();
+
+	bulletImg = new ImageTemplate();
+	bulletImg->LoadImageW("resources/bullet.png");
+
+	playerImg = new ImageTemplate();
+	playerImg->LoadImageW("resources/ship.png");
+
+	Init();
 }
 
 void GameScene::ProcessInput(GLFWwindow* window) {
@@ -127,8 +139,8 @@ void GameScene::Render() {
 
 	shaderProgram->SetInt("inTexture", 3);
 	for (auto& monster : currentLevel->monsters) {
-		Vector3 velocity(3, 0, 0);
-		monster->Move(velocity);
+		/*Vector3 velocity(0.01, 0, 0);
+		monster->Move(velocity);*/
 		monster->Render();
 	}
 }
@@ -150,7 +162,22 @@ GameScene::~GameScene() {
 	}
 
 	if (background) {
+		if (backgroundImg) {
+			backgroundImg->UnloadImage();
+			delete backgroundImg;
+		}
+
 		delete background;
+	}
+
+	if (playerImg) {
+		playerImg->UnloadImage();
+		delete playerImg;
+	}
+
+	if (bulletImg) {
+		bulletImg->UnloadImage();
+		delete bulletImg;
 	}
 
 	if (currentLevel) {

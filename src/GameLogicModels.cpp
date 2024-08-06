@@ -1,7 +1,7 @@
 #include "Models.h"
 
-Player::Player(Vector3 position) : health(100) {
-	texture = new Texture2D(position, PLAYER_SHIP_WIDTH, PLAYER_SHIP_HEIGHT, "resources/ship.png", GL_TEXTURE0);
+Player::Player(Vector3 position, ImageTemplate* img) : health(100) {
+	texture = new Texture2D(position, PLAYER_SHIP_WIDTH, PLAYER_SHIP_HEIGHT, img, GL_TEXTURE0);
 	texture->Init();
 }
 
@@ -16,14 +16,9 @@ void Player::Render() {
 	texture->Draw();
 }
 
-Player::~Player() {
-	delete texture;
-	texture = nullptr;
-}
-
 // Bullet methods
-Bullet::Bullet(Vector3 position, float power) : power(power) {
-	texture = new Texture2D(position, BULLET_WIDTH, BULLET_HEIGHT, "resources/bullet.png", GL_TEXTURE1);
+Bullet::Bullet(Vector3 position, float power, ImageTemplate* img) : power(power) {
+	texture = new Texture2D(position, BULLET_WIDTH, BULLET_HEIGHT, img, GL_TEXTURE1);
 	texture->Init();
 }
 
@@ -38,15 +33,9 @@ void Bullet::Render() {
 	texture->Draw();
 }
 
-Bullet::~Bullet() {
-	if (texture) {
-		delete texture;
-		texture = nullptr;
-	}
-}
 
-Monster::Monster(Vector3 curPosition, float health) : initialPos(curPosition), health(health) {
-	texture = new Texture2D(curPosition, NORMAL_SHIP_WIDTH, NORMAL_SHIP_HEIGHT, "resources/monster.png", GL_TEXTURE3);
+Monster::Monster(Vector3 curPosition, float health, ImageTemplate* img) : initialPos(curPosition), health(health) {
+	texture = new Texture2D(curPosition, NORMAL_SHIP_WIDTH, NORMAL_SHIP_HEIGHT, img, GL_TEXTURE3);
 	texture->Init();
 }
 
@@ -55,36 +44,42 @@ void Monster::Render() {
 }
 
 void Monster::Move(Vector3 velocity) {
-	if (texture->position.x <= (initialPos.x + (velocity.x * 5)) && texture->position.x >= initialPos.x) {
-		texture->position.x += velocity.x;
-		texture->position.y += velocity.y;
-		texture->position.z += velocity.z;
+	if (direction == MonsterMovingDirection::Right) {
+		if (texture->position.x <= (initialPos.x + (velocity.x * 45))) {
+			texture->position.x += velocity.x;
+			texture->position.y += velocity.y;
+			texture->position.z += velocity.z;
+		}
+		else {
+			direction = MonsterMovingDirection::Left;
+		}
 	}
-	else if(texture->position.x >= (initialPos.x - (velocity.x * 5))) {
-		texture->position.x -= velocity.x;
-		texture->position.y -= velocity.y;
-		texture->position.z -= velocity.z;
+	else if (direction == MonsterMovingDirection::Left) {
+		if (texture->position.x >= (initialPos.x - (velocity.x * 45))) {
+			texture->position.x -= velocity.x;
+			texture->position.y -= velocity.y;
+			texture->position.z -= velocity.z;
+		}
+		else {
+			direction = MonsterMovingDirection::Right;
+		}
 	}
 	texture->UpdateTexture(texture->position);
 }
 
-Monster::~Monster() {
-	if (texture) {
-		delete texture;
-		texture = nullptr;
-	}
-}
-
 Level::Level(std::string name, bool isEndLevel) : name(name), isEndLevel(isEndLevel) {
+	monsterImg = new ImageTemplate();
+	monsterImg->LoadImage("resources/monster.png");
 }
 
 void Level::SpwanMonsters(int noOfMonsters, float health) {
+	int xOffset = 30;
 	float x = 30, y = 30;
 	float spaceBetweenObjs = 20;
 	for (int i = 0; i < noOfMonsters; ++i) {
-		Monster* monster = new Monster(Vector3(x, y, 0), health);
+		Monster* monster = new Monster(Vector3(x, y, 0), health, monsterImg);
 		monsters.push_back(monster);
-		x += 30 + NORMAL_SHIP_WIDTH + spaceBetweenObjs;
+		x += xOffset + NORMAL_SHIP_WIDTH;
 		if (x >= SCREEN_WIDTH) {
 			x = 30;
 			// we should consider creating a reasonable no of objects to do not fill the whole screen with monsters
@@ -94,6 +89,11 @@ void Level::SpwanMonsters(int noOfMonsters, float health) {
 }
 
 Level::~Level() {
+	if (monsterImg) {
+		monsterImg->UnloadImage();
+		delete monsterImg;
+	}
+
 	for (auto& monster : monsters) {
 		if (monster) {
 			delete monster;

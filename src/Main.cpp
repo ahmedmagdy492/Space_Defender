@@ -1,6 +1,7 @@
 
 #include "Models.h"
 
+
 void ProcessInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
@@ -21,6 +22,9 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
+	HWND windowHandle = glfwGetWin32Window(window);
+	SetWindowLongPtr(windowHandle, GWL_STYLE, GetWindowLongPtrA(windowHandle, GWL_STYLE) & ~(WS_MAXIMIZEBOX));
+
 	glfwMakeContextCurrent(window);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -33,7 +37,6 @@ int main(int argc, char* argv[]) {
 
 	// init game objects
 	GameScene gameScene;
-	gameScene.Init();
 
 	while (!glfwWindowShouldClose(window)) {
 		ProcessInput(window);

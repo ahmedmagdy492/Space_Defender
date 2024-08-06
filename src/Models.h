@@ -5,11 +5,48 @@
 #include <sstream>
 #include <vector>
 
+#define GLFW_EXPOSE_NATIVE_WIN32
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
+#include <GLFW\glfw3native.h>
 
 #include "../include/common.h"
 #include "../include/stb_image/stb_image.h"
+
+class ImageTemplate {
+public:
+	int width, height;
+	GLenum imgPixelFormat;
+	unsigned char* data = nullptr;
+
+	void LoadImage(std::string imagePath) {
+		stbi_set_flip_vertically_on_load(true);
+		int nChannels = 1;
+		data = stbi_load(imagePath.c_str(), &width, &height, &nChannels, 0);
+
+		if (!data)
+			throw std::string("Unable to load provided image");
+
+		imgPixelFormat = GL_RGBA;
+		switch (nChannels) {
+		case 1:
+			imgPixelFormat = GL_RED;
+			break;
+		case 3:
+			imgPixelFormat = GL_RGB;
+			break;
+		case 4:
+			imgPixelFormat = GL_RGBA;
+			break;
+		}
+	}
+
+	void UnloadImage() {
+		if (data) {
+			stbi_image_free(data);
+		}
+	}
+};
 
 class ShaderProgram {
 private:
@@ -126,11 +163,10 @@ private:
 	void SetupTextureBuffers(Vector3 newPosition);
 public:
 	int width, height;
-	int imgWidth, imgHeight;
-	std::string imagePath;
 	int textureUnit;
+	ImageTemplate* image;
 
-	Texture2D(Vector3 position, int width, int height, std::string imagePath, unsigned int textureUnit);
+	Texture2D(Vector3 position, int width, int height, ImageTemplate* img, unsigned int textureUnit);
 
 	void UpdateTexture(Vector3 position);
 
@@ -149,13 +185,11 @@ public:
 	Texture2D* texture;
 	float health;
 
-	Player(Vector3 position);
+	Player(Vector3 position, ImageTemplate* img);
 
 	void Move(Vector3 velocity);
 
 	void Render();
-
-	~Player();
 };
 
 class Bullet {
@@ -163,28 +197,30 @@ public:
 	Texture2D* texture;
 	float power;
 
-	Bullet(Vector3 position, float power);
+	Bullet(Vector3 position, float power, ImageTemplate* img);
 
 	void Move(Vector3 velocity);
 
 	void Render();
+};
 
-	~Bullet();
+enum MonsterMovingDirection {
+	Right,
+	Left
 };
 
 class Monster {
 public:
 	Texture2D* texture;
 	Vector3 initialPos;
+	MonsterMovingDirection direction = MonsterMovingDirection::Right;
 	float health;
 
-	Monster(Vector3 initialPos, float health);
+	Monster(Vector3 initialPos, float health, ImageTemplate* img);
 
 	void Render();
 
 	void Move(Vector3 velocity);
-
-	~Monster();
 };
 
 class Level {
@@ -192,6 +228,7 @@ public:
 	std::string name;
 	bool isEndLevel = false;
 	std::vector<Monster*> monsters;
+	ImageTemplate* monsterImg = nullptr;
 
 	Level(std::string name, bool isEndLevel);
 
@@ -233,12 +270,19 @@ private:
 	std::vector<Bullet*> bulletsToRemove;
 	ShaderProgram* shaderProgram = nullptr;
 	unsigned int currentKeyPress = 0;
-	Texture2D* background = nullptr;
 	Level* currentLevel = nullptr;
+
+	// textures declarations
+	Texture2D* background = nullptr;
+	ImageTemplate* backgroundImg = nullptr;
+	ImageTemplate* playerImg = nullptr;
+	ImageTemplate* bulletImg = nullptr;
 
 	void FillInBulletsPool(int noOfBullets);
 
 public:
+	GameScene();
+
 	void Init();
 
 	void ProcessInput(GLFWwindow* window);

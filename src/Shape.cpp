@@ -71,12 +71,19 @@ void Rectangle::Draw() {
 }
 
 // Texture Shape
-Texture2D::Texture2D(Vector3 position, int width, int height, std::string imagePath, unsigned int textureUnit) : imgWidth(0), imgHeight(0), textureUnit(textureUnit) {
-	this->imagePath = imagePath;
+Texture2D::Texture2D(Vector3 position, int width, int height, ImageTemplate* img, unsigned int textureUnit) : textureUnit(textureUnit), textureId(0) {
+	this->image = img;
 	this->position = position;
 	this->width = width;
 	this->height = height;
 	this->textureUnit = textureUnit;
+}
+
+void PrintErrorIfThereAny(std::string msg) {
+	GLenum errCode = glGetError();
+	if (errCode != 0) {
+		std::cout << "OPEN_GL::Error " << msg << ": " << errCode << std::endl;
+	}
 }
 
 void Texture2D::SetOption(GLenum name, int value) {
@@ -85,38 +92,18 @@ void Texture2D::SetOption(GLenum name, int value) {
 }
 
 void Texture2D::Init() {
-	int nChannels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load(imagePath.c_str(), &imgWidth, &imgHeight, &nChannels, 0);
-
-	std::cout << "image " << imagePath << " channels: " << nChannels << std::endl;
-
-	GLenum imgPixelFormat = GL_RGBA;
-
-	switch (nChannels) {
-	case 1:
-		imgPixelFormat = GL_RED;
-		break;
-	case 3:
-		imgPixelFormat = GL_RGB;
-		break;
-	case 4:
-		imgPixelFormat = GL_RGBA;
-		break;
-	}
-
-	if (!data)
-		throw std::string("Unable to load provided image");
-
 	SetupTextureBuffers(position);
 
 	glGenTextures(1, &textureId);
+	PrintErrorIfThereAny("After Generating Texture");
 	glActiveTexture(textureUnit);
+	PrintErrorIfThereAny("After Activating Texture Unit");
 	glBindTexture(GL_TEXTURE_2D, textureId);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, imgPixelFormat, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, image->imgPixelFormat, GL_UNSIGNED_BYTE, image->data);
+	PrintErrorIfThereAny("After Copying Texture Data");
 	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(data);
+	PrintErrorIfThereAny("After Generating Mipmaps");
 }
 
 void Texture2D::SetupTextureBuffers(Vector3 position) {
