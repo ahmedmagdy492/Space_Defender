@@ -111,3 +111,24 @@ Level::~Level() {
 
 	monsters.clear();
 }
+
+
+Grenade::Grenade(Vector3 position, Image* img, int power) : power(power) {
+	texture = new Texture2D(position, GRENADE_WIDTH, GRENADE_HEIGHT, img, GL_TEXTURE8);
+	texture->Init();
+}
+
+void Grenade::Render() {
+	texture->Draw();
+}
+
+void Grenade::Move(Vector3 velocity) {
+	this->texture->position.y += velocity.y;
+	this->texture->UpdateTexture(this->texture->position);
+}
+
+Grenade::~Grenade() {
+	if (texture) {
+		delete texture;
+	}
+}

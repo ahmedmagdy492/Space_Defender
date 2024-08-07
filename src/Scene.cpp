@@ -167,6 +167,13 @@ void GameScene::FillInBulletsPool(int noOfBullets = 100) {
 	}
 }
 
+void GameScene::FillInGrenadesPools(int noOfGrenades = 50) {
+	for (int i = 0; i < noOfGrenades; ++i) {
+		Grenade* grenade = new Grenade(Vector3(-100.0f, -100.0f, 0.0f), grenadeImg, BOMB_POWER_LVL1);
+		bombsPool.push_back(grenade);
+	}
+}
+
 
 void GameScene::Init() {
 	try {
@@ -203,6 +210,7 @@ void GameScene::Init() {
 	player = new Player(playerPos, playerImg);
 
 	FillInBulletsPool();
+	FillInGrenadesPools(100);
 
 	currentLevel = new Level("Level", false);
 	currentLevel->SpwanMonsters(50, LEVEL_1_MONSTERS_POWER);
@@ -226,6 +234,9 @@ GameScene::GameScene(SceneManager* sceneManager) {
 
 	playerImg = new Image();
 	playerImg->LoadImageW("resources/ship.png");
+
+	grenadeImg = new Image();
+	grenadeImg->LoadImage("resources/bomb.png");
 
 	Init();
 }
@@ -279,12 +290,26 @@ bool GameScene::BulletCollidedWithMonster(Vector3 bullet, Vector3 monster) {
 	}
 }
 
+bool GameScene::BombCollidedWithPlayer(Vector3 bomb, Vector3 player) {
+	return (bomb.x < player.x + NORMAL_SHIP_WIDTH &&
+		bomb.x + GRENADE_WIDTH > player.x &&
+		bomb.y < player.y + NORMAL_SHIP_HEIGHT &&
+		bomb.y + GRENADE_HEIGHT > player.y);
+}
+
 void GameScene::Render() {
 	shaderProgram->Use();
 	shaderProgram->SetInt("inTexture", 2);
 	background->Draw();
 
-	shaderProgram->SetInt("inTexture", 1);
+	for (auto& bombToRemove : bombsToRemove) {
+		std::vector<Grenade*>::iterator it = std::find(bombs.begin(), bombs.end(), bombToRemove);
+		if (it != bombs.end()) {
+			bombs.erase(it);
+		}
+		bombsPool.push_back(bombToRemove);
+	}
+	bombsToRemove.clear();
 
 	for (auto& monsterToBeRemoved : monstersToRemove) {
 		std::vector<Monster*>::iterator it = std::find(currentLevel->monsters.begin(), currentLevel->monsters.end(), monsterToBeRemoved);
@@ -319,6 +344,36 @@ void GameScene::Render() {
 		std::cout << "Changed to level " << levelsFinished << std::endl;
 	}
 
+	shaderProgram->SetInt("inTexture", 8);
+	for (auto& bomb : bombs) {
+		Vector3 velocity(0.0f, 5.0f * 0.2f, 0.0f);
+		bomb->Move(velocity);
+		bomb->Render();
+
+		if ((bomb->texture->position.y + bomb->texture->height) > SCREEN_HEIGHT) {
+			bomb->texture->position = Vector3(-100.0f, -100.0f, 0.0f);
+			bomb->texture->UpdateTexture(bomb->texture->position);
+			bombsToRemove.push_back(bomb);
+		}
+		else {
+			if (BombCollidedWithPlayer(bomb->texture->position, player->texture->position)) {
+				player->health -= bomb->power;
+				if (player->health <= 0) {
+					// TODO: Reset the current level
+					std::cout << "Game Over: player health: " << player->health << std::endl;
+				}
+				else {
+					minus10->position = player->texture->position;
+					minus10->UpdateTexture(minus10->position);
+				}
+				bomb->texture->position = Vector3(-100.0f, -100.0f, 0.0f);
+				bomb->texture->UpdateTexture(bomb->texture->position);
+				bombsToRemove.push_back(bomb);
+			}
+		}
+	}
+
+	shaderProgram->SetInt("inTexture", 1);
 	for (auto& bullet : bullets) {
 		bullet->Render();
 		Vector3 velocity(0.0f, -3.0f * 0.2f, 0.0f);
@@ -338,6 +393,8 @@ void GameScene::Render() {
 						minus10->position = monster->texture->position;
 						minus10->UpdateTexture(minus10->position);
 					}
+					bullet->texture->position = Vector3(player->texture->position);
+					bullet->texture->UpdateTexture(bullet->texture->position);
 					bulletsToRemove.push_back(bullet);
 					break;
 				}
@@ -354,6 +411,19 @@ void GameScene::Render() {
 		Vector3 velocity(.5f*.2f, 0.0f, 0.0f);
 		monster->Move(velocity);
 		monster->Render();
+	}
+
+	int time = (int)glfwGetTime();
+	if ((time % 2) == 0) {
+		if (currentLevel->monsters.size() > 0 && bombsPool.size() > 0) {
+			Grenade* bomb = bombsPool[bombsPool.size() - 1];
+			bombsPool.erase(bombsPool.begin() + (bombsPool.size() - 1));
+			srand(time);
+			int randMonsterIndex = rand() % currentLevel->monsters.size();
+			bomb->texture->position = currentLevel->monsters[randMonsterIndex]->texture->position;
+			bomb->texture->UpdateTexture(bomb->texture->position);
+			bombs.push_back(bomb);
+		}
 	}
 
 	shaderProgram->SetInt("inTexture", 4);
@@ -375,6 +445,13 @@ GameScene::~GameScene() {
 		if (bullet) {
 			delete bullet;
 			bullet = nullptr;
+		}
+	}
+
+	for (auto& bomb : bombsPool) {
+		if (bomb) {
+			delete bomb;
+			bomb = nullptr;
 		}
 	}
 
@@ -404,6 +481,11 @@ GameScene::~GameScene() {
 	if (bulletImg) {
 		bulletImg->UnloadImage();
 		delete bulletImg;
+	}
+
+	if (grenadeImg) {
+		grenadeImg->UnloadImage();
+		delete grenadeImg;
 	}
 
 	if (currentLevel) {

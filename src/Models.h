@@ -6,6 +6,10 @@
 #include <vector>
 #include <unordered_map>
 
+extern "C" {
+	#include <stdlib.h>
+}
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
@@ -242,6 +246,20 @@ public:
 	~Level();
 };
 
+class Grenade {
+public:
+	Texture2D* texture = nullptr;
+	int power;
+
+	Grenade(Vector3 position, Image* img, int power);
+
+	void Render();
+
+	void Move(Vector3 velocity);
+
+	~Grenade();
+};
+
 
 // UI Models
 class ImageButton {
@@ -328,6 +346,11 @@ private:
 	std::vector<Bullet*> bulletsPool;
 	std::vector<Bullet*> bulletsToRemove;
 	std::vector<Monster*> monstersToRemove;
+
+	std::vector<Grenade*> bombs;
+	std::vector<Grenade*> bombsPool;
+	std::vector<Grenade*> bombsToRemove;
+
 	ShaderProgram* shaderProgram = nullptr;
 	unsigned int currentKeyPress = 0;
 	Level* currentLevel = nullptr;
@@ -342,11 +365,16 @@ private:
 	Image* playerImg = nullptr;
 	Image* bulletImg = nullptr;
 
+	Image* grenadeImg = nullptr;
+
 	SceneManager* sceneManager = nullptr;
 
 	void FillInBulletsPool(int noOfBullets);
 
+	void FillInGrenadesPools(int noOfGrenades);
+
 	bool BulletCollidedWithMonster(Vector3 first, Vector3 other);
+	bool BombCollidedWithPlayer(Vector3 first, Vector3 other);
 
 public:
 	GameScene(SceneManager* sceneManager);

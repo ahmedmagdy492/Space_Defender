@@ -100,7 +100,7 @@ void Texture2D::Init() {
 	PrintErrorIfThereAny("After Activating Texture Unit");
 	glBindTexture(GL_TEXTURE_2D, textureId);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, image->imgPixelFormat, GL_UNSIGNED_BYTE, image->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, image->imgPixelFormat, image->width, image->height, 0, image->imgPixelFormat, GL_UNSIGNED_BYTE, image->data);
 	PrintErrorIfThereAny("After Copying Texture Data");
 	glGenerateMipmap(GL_TEXTURE_2D);
 	PrintErrorIfThereAny("After Generating Mipmaps");
@@ -141,7 +141,7 @@ void Texture2D::SetupTextureBuffers(Vector3 position) {
 
 	glGenBuffers(1, &vboId);
 	glBindBuffer(GL_ARRAY_BUFFER, vboId);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexBuffer), vertexBuffer, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexBuffer), vertexBuffer, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)0);
 	glEnableVertexAttribArray(0);
@@ -151,7 +151,7 @@ void Texture2D::SetupTextureBuffers(Vector3 position) {
 
 	glGenBuffers(1, &eboId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elementBuffer), elementBuffer, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elementBuffer), elementBuffer, GL_STATIC_DRAW);
 }
 
 void Texture2D::UpdateTexture(Vector3 position) {
