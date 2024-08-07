@@ -376,6 +376,8 @@ private:
 	bool BulletCollidedWithMonster(Vector3 first, Vector3 other);
 	bool BombCollidedWithPlayer(Vector3 first, Vector3 other);
 
+	void ResetScene();
+
 public:
 	GameScene(SceneManager* sceneManager);
 

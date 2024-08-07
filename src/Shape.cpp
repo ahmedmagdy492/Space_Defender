@@ -99,7 +99,7 @@ void Texture2D::Init() {
 	glActiveTexture(textureUnit);
 	PrintErrorIfThereAny("After Activating Texture Unit");
 	glBindTexture(GL_TEXTURE_2D, textureId);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, image->imgPixelFormat, image->width, image->height, 0, image->imgPixelFormat, GL_UNSIGNED_BYTE, image->data);
 	PrintErrorIfThereAny("After Copying Texture Data");
 	glGenerateMipmap(GL_TEXTURE_2D);

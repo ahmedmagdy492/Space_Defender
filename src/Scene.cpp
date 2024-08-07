@@ -65,7 +65,7 @@ void MenuScene::Init() {
 		fragmentIfStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
 		vertexIfStream.open("shaders/texture_vertex_shader.vert");
-		fragmentIfStream.open("shaders/texture_fragment_shader.frag");
+		fragmentIfStream.open("shaders/texture_fragment_shader_menu_scene.frag");
 		std::stringstream vertexStrStream, fragmentStrStream;
 
 		vertexStrStream << vertexIfStream.rdbuf();
@@ -174,6 +174,25 @@ void GameScene::FillInGrenadesPools(int noOfGrenades = 50) {
 	}
 }
 
+void GameScene::ResetScene() {
+	bulletsPool.clear();
+	bombsPool.clear();
+	bombs.clear();
+	bullets.clear();
+	currentLevel->monsters.clear();
+
+	player->health = 100;
+	Vector3 playerPos;
+	playerPos.x = (SCREEN_WIDTH - PLAYER_SHIP_WIDTH) / 2;
+	playerPos.y = SCREEN_HEIGHT - PLAYER_SHIP_HEIGHT - 20;
+	player->texture->position = playerPos;
+
+	FillInBulletsPool();
+	FillInGrenadesPools(100);
+
+	currentLevel->SpwanMonsters(50, LEVEL_1_MONSTERS_POWER);
+}
+
 
 void GameScene::Init() {
 	try {
@@ -212,7 +231,7 @@ void GameScene::Init() {
 	FillInBulletsPool();
 	FillInGrenadesPools(100);
 
-	currentLevel = new Level("Level", false);
+	currentLevel = new Level("Level", true);
 	currentLevel->SpwanMonsters(50, LEVEL_1_MONSTERS_POWER);
 	levelsFinished++;
 }
@@ -260,9 +279,12 @@ void GameScene::ProcessInput(GLFWwindow* window) {
 			player->Move(velocity);
 		}
 	}
+	int time = (int)glfwGetTime();
+	static int lastShootTime = -1;
 	if (currentKeyPress != GLFW_KEY_SPACE && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		currentKeyPress = GLFW_KEY_SPACE;
-		if (bulletsPool.size() > 0) {
+		if (bulletsPool.size() > 0 && lastShootTime != time) {
+			lastShootTime = time;
 			Bullet* bullet = bulletsPool[bulletsPool.size()-1];
 			bulletsPool.erase(bulletsPool.begin() + (bulletsPool.size() - 1));
 			bullet->texture->position = player->texture->position;
@@ -330,6 +352,7 @@ void GameScene::Render() {
 
 	if (this->currentLevel->monsters.size() == 0) {
 		bullets.clear();
+		bombs.clear();
 		delete currentLevel;
  		if ((levelsFinished % 10) == 0) {
 			currentLevel = new Level("Level", true);
@@ -359,8 +382,7 @@ void GameScene::Render() {
 			if (BombCollidedWithPlayer(bomb->texture->position, player->texture->position)) {
 				player->health -= bomb->power;
 				if (player->health <= 0) {
-					// TODO: Reset the current level
-					std::cout << "Game Over: player health: " << player->health << std::endl;
+					ResetScene();
 				}
 				else {
 					minus10->position = player->texture->position;
@@ -414,7 +436,9 @@ void GameScene::Render() {
 	}
 
 	int time = (int)glfwGetTime();
-	if ((time % 2) == 0) {
+	static int lastBombSpwanTime = -1;
+	if ((time % 2) == 0 && time != lastBombSpwanTime) {
+		lastBombSpwanTime = time;
 		if (currentLevel->monsters.size() > 0 && bombsPool.size() > 0) {
 			Grenade* bomb = bombsPool[bombsPool.size() - 1];
 			bombsPool.erase(bombsPool.begin() + (bombsPool.size() - 1));

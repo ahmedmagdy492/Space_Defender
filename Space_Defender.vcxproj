@@ -158,6 +158,7 @@
     <None Include="shaders\default_fragment_shader.frag" />
     <None Include="shaders\default_vertex_shader.vert" />
     <None Include="shaders\texture_fragment_shader.frag" />
+    <None Include="shaders\texture_fragment_shader_menu_scene.frag" />
     <None Include="shaders\texture_vertex_shader.vert" />
   </ItemGroup>
   <ItemGroup>
