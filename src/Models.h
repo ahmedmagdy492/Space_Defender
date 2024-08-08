@@ -154,11 +154,13 @@ public:
 	virtual void Draw() = 0;
 };
 
-class Rectangle : public Shape {
+class RectangleShape : public Shape {
 public:
 	int width, height;
 
-	Rectangle(Vector3 position, int width, int height, Color color);
+	RectangleShape(Vector3 position, int width, int height, Color color);
+
+	void UpdateShape(Vector3 position);
 
 	void Init();
 
@@ -189,16 +191,59 @@ public:
 
 // Game Logic Models
 
-class Player {
+class HealthBar {
 public:
-	Texture2D* texture;
-	float health;
+	RectangleShape *rectangle = nullptr;
+	Color color = Color(1.0f, 0.0f, 0.0f);
+	int health = 0;
 
-	Player(Vector3 position, Image* img);
+	HealthBar(Vector3 position, int health);
 
 	void Move(Vector3 velocity);
 
 	void Render();
+
+	~HealthBar();
+};
+
+class Player {
+private:
+	unsigned int health;
+	unsigned int score = 0;
+
+public:
+	Texture2D* texture = nullptr;
+	HealthBar* healthBar = nullptr;
+
+	Player(Vector3 position, Image* img);
+
+	unsigned int GetHealth() {
+		return health;
+	}
+
+	void DecreaseHealth(unsigned int value) {
+		health -= value;
+		healthBar->health -= value;
+		healthBar->rectangle->width = healthBar->health / 2;
+	}
+
+	void IncreaseHealth(unsigned int value) {
+		health += value;
+		healthBar->health += value;
+		healthBar->rectangle->width = healthBar->health / 2;
+	}
+
+	void ZeroHealth() {
+		health = 0;
+		healthBar->health = 0;
+		healthBar->rectangle->width = 0;
+	}
+
+	void Move(Vector3 velocity);
+
+	void Render();
+
+	~Player();
 };
 
 class Bullet {

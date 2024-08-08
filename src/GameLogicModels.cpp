@@ -1,8 +1,28 @@
 #include "Models.h"
 
+HealthBar::HealthBar(Vector3 position, int health) : health(health) {
+	rectangle = new RectangleShape(position, health / 2, HEALTH_BAR_HEIGHT, color);
+	rectangle->Init();
+}
+
+void HealthBar::Move(Vector3 velocity) {
+	rectangle->UpdateShape(velocity);
+}
+
+void HealthBar::Render() {
+	rectangle->Draw();
+}
+
+HealthBar::~HealthBar() {
+	if (rectangle) {
+		delete rectangle;
+	}
+}
+
 Player::Player(Vector3 position, Image* img) : health(100) {
 	texture = new Texture2D(position, PLAYER_SHIP_WIDTH, PLAYER_SHIP_HEIGHT, img, GL_TEXTURE0);
 	texture->Init();
+	healthBar = new HealthBar(Vector3(position.x, position.y - HEALTH_BAR_HEIGHT - 10, 0.0f), health);
 }
 
 void Player::Move(Vector3 velocity) {
@@ -10,10 +30,23 @@ void Player::Move(Vector3 velocity) {
 	texture->position.y += velocity.y;
 	texture->position.z += velocity.z;
 	texture->UpdateTexture(texture->position);
+
+	healthBar->rectangle->position.x = texture->position.x;
+	healthBar->Move(healthBar->rectangle->position);
 }
 
 void Player::Render() {
 	texture->Draw();
+}
+
+Player::~Player() {
+	if (healthBar) {
+		delete healthBar;
+	}
+
+	if (texture) {
+		delete texture;
+	}
 }
 
 // Bullet methods

@@ -11,12 +11,12 @@ float Shape::ConvertToNDCForY(float y) {
 	return 1.0f - ((2.0f * y) / SCREEN_HEIGHT);
 }
 
-Rectangle::Rectangle(Vector3 position, int width, int height, Color color) : width(width), height(height) {
+RectangleShape::RectangleShape(Vector3 position, int width, int height, Color color) : width(width), height(height) {
 	this->position = position;
 	this->color = color;
 }
 
-void Rectangle::Init() {
+void RectangleShape::Init() {
 	glGenBuffers(1, &vboId);
 
 	Vector3 ndcTopLeft, ndcTopRight, ndcBottomLeft, ndcBottomRight;
@@ -65,9 +65,38 @@ void Rectangle::Init() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elementBuffer), elementBuffer, GL_DYNAMIC_DRAW);
 }
 
-void Rectangle::Draw() {
+void RectangleShape::Draw() {
 	glBindVertexArray(vaoId);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+void RectangleShape::UpdateShape(Vector3 position) {
+	Vector3 ndcTopLeft, ndcTopRight, ndcBottomLeft, ndcBottomRight;
+	ndcTopLeft.x = ConvertToNDCForX(position.x);
+	ndcTopLeft.y = ConvertToNDCForY(position.y);
+	ndcTopLeft.z = 0.0f;
+
+	ndcTopRight.x = ConvertToNDCForX(position.x + width);
+	ndcTopRight.y = ConvertToNDCForY(position.y);
+	ndcTopRight.z = 0.0f;
+
+	ndcBottomLeft.x = ConvertToNDCForX(position.x);
+	ndcBottomLeft.y = ConvertToNDCForY(position.y + height);
+	ndcBottomLeft.z = 0.0f;
+
+	ndcBottomRight.x = ConvertToNDCForX(position.x + width);
+	ndcBottomRight.y = ConvertToNDCForY(position.y + height);
+	ndcBottomRight.z = 0.0f;
+
+	float vertexBuffer[] = {
+		ndcTopLeft.x,     ndcTopLeft.y,    ndcTopLeft.z, color.red, color.green, color.blue,
+		ndcTopRight.x,    ndcTopRight.y,   ndcTopLeft.z, color.red, color.green, color.blue,
+		ndcBottomLeft.x,  ndcBottomLeft.y, ndcTopLeft.z, color.red, color.green, color.blue,
+		ndcBottomRight.x, ndcBottomRight.y, ndcTopLeft.z, color.red, color.green, color.blue
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, vboId);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexBuffer), vertexBuffer);
 }
 
 // Texture Shape

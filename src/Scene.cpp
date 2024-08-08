@@ -33,7 +33,7 @@ MenuScene::MenuScene(SceneManager* sceneManager) {
 
 	titleImg = new Image();
 	titleImg->LoadImage("resources/title.png");
-	titleTexture = new Texture2D(Vector3((SCREEN_WIDTH - titleImg->width)/2, 40, 0), titleImg->width, titleImg->height, titleImg, GL_TEXTURE7);
+	titleTexture = new Texture2D(Vector3((SCREEN_WIDTH - titleImg->width)/2, 100, 0), titleImg->width, titleImg->height, titleImg, GL_TEXTURE7);
 	titleTexture->Init();
 
 	Init();
@@ -52,7 +52,7 @@ MenuScene::MenuScene(SceneManager* sceneManager) {
 				0.0f
 			), 
 			btnImgs[i], GL_TEXTURE5 + i);
-		yPadding += BTN_HEIGHT - 50;
+		yPadding += BTN_HEIGHT + 30;
 	}
 }
 
@@ -65,7 +65,7 @@ void MenuScene::Init() {
 		fragmentIfStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
 		vertexIfStream.open("shaders/texture_vertex_shader.vert");
-		fragmentIfStream.open("shaders/texture_fragment_shader_menu_scene.frag");
+		fragmentIfStream.open("shaders/texture_fragment_shader.frag");
 		std::stringstream vertexStrStream, fragmentStrStream;
 
 		vertexStrStream << vertexIfStream.rdbuf();
@@ -181,15 +181,18 @@ void GameScene::ResetScene() {
 	bullets.clear();
 	currentLevel->monsters.clear();
 
-	player->health = 100;
+	player->ZeroHealth();
+	player->IncreaseHealth(100);
 	Vector3 playerPos;
 	playerPos.x = (SCREEN_WIDTH - PLAYER_SHIP_WIDTH) / 2;
 	playerPos.y = SCREEN_HEIGHT - PLAYER_SHIP_HEIGHT - 20;
 	player->texture->position = playerPos;
+	player->healthBar->rectangle->UpdateShape(player->healthBar->rectangle->position);
 
 	FillInBulletsPool();
 	FillInGrenadesPools(100);
 
+	// TODO: need to adjust the monsters power here
 	currentLevel->SpwanMonsters(50, LEVEL_1_MONSTERS_POWER);
 }
 
@@ -231,7 +234,7 @@ void GameScene::Init() {
 	FillInBulletsPool();
 	FillInGrenadesPools(100);
 
-	currentLevel = new Level("Level", true);
+	currentLevel = new Level("Level", false);
 	currentLevel->SpwanMonsters(50, LEVEL_1_MONSTERS_POWER);
 	levelsFinished++;
 }
@@ -380,8 +383,8 @@ void GameScene::Render() {
 		}
 		else {
 			if (BombCollidedWithPlayer(bomb->texture->position, player->texture->position)) {
-				player->health -= bomb->power;
-				if (player->health <= 0) {
+				player->DecreaseHealth(bomb->power);
+				if (player->GetHealth() <= 0) {
 					ResetScene();
 				}
 				else {
@@ -426,7 +429,10 @@ void GameScene::Render() {
 
 	shaderProgram->SetInt("inTexture", 0);
 	player->Render();
-
+	shaderProgram->SetBool("isShape", true);
+	shaderProgram->SetVector3("shapeColor", Vector3(player->healthBar->color.red, player->healthBar->color.green, player->healthBar->color.blue));
+	player->healthBar->Render();
+	shaderProgram->SetBool("isShape", false);
 
 	shaderProgram->SetInt("inTexture", 3);
 	for (auto& monster : currentLevel->monsters) {
@@ -437,7 +443,7 @@ void GameScene::Render() {
 
 	int time = (int)glfwGetTime();
 	static int lastBombSpwanTime = -1;
-	if ((time % 2) == 0 && time != lastBombSpwanTime) {
+	if (time != lastBombSpwanTime) {
 		lastBombSpwanTime = time;
 		if (currentLevel->monsters.size() > 0 && bombsPool.size() > 0) {
 			Grenade* bomb = bombsPool[bombsPool.size() - 1];

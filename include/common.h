@@ -30,14 +30,16 @@
 #define BOMB_POWER_LVL4 40
 #define BOMB_POWER_LVL5 50
 
-#define LEVEL_1_MONSTERS_POWER 50
+#define LEVEL_1_MONSTERS_POWER 20
 #define LEVEL_10_MONSTERS_POWER 5200
 
 #define NO_OF_MONSTERS 50
 
 #define NO_OF_UI_BTNS 2
 #define BTN_WIDTH 300
-#define BTN_HEIGHT 200
+#define BTN_HEIGHT 48
+
+#define HEALTH_BAR_HEIGHT 10
 
 struct Color {
 	float red;
