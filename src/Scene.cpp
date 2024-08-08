@@ -363,7 +363,7 @@ void GameScene::Render() {
 		}
 		else {
 			currentLevel = new Level("Level", false);
-			currentLevel->SpwanMonsters(NO_OF_MONSTERS, LEVEL_1_MONSTERS_POWER * levelsFinished);
+			currentLevel->SpwanMonsters((NO_OF_MONSTERS - levelsFinished) > 20 ? NO_OF_MONSTERS - levelsFinished : NO_OF_MONSTERS - 20, LEVEL_1_MONSTERS_POWER * levelsFinished);
 		}
 
 		++levelsFinished;
