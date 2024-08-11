@@ -1,8 +1,5 @@
 #pragma once
 
-#define SCREEN_WIDTH 1366
-#define SCREEN_HEIGHT 768
-
 #define PLAYER_SHIP_WIDTH  50
 #define PLAYER_SHIP_HEIGHT 50
 

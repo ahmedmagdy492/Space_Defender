@@ -4,11 +4,13 @@
 
 
 float Shape::ConvertToNDCForX(float x) {
-	return ((2.0f * x) / SCREEN_WIDTH) - 1.0f;
+	Config& config = Config::GetInstance();
+	return ((2.0f * x) / config.GetScreenWidth()) - 1.0f;
 }
 
 float Shape::ConvertToNDCForY(float y) {
-	return 1.0f - ((2.0f * y) / SCREEN_HEIGHT);
+	Config& config = Config::GetInstance();
+	return 1.0f - ((2.0f * y) / config.GetScreenHeight());
 }
 
 RectangleShape::RectangleShape(Vector3 position, int width, int height, Color color) : width(width), height(height) {

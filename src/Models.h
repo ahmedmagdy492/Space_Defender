@@ -18,6 +18,40 @@ extern "C" {
 #include "../include/common.h"
 #include "../include/stb_image/stb_image.h"
 
+class Config {
+private:
+	int screenWidth = 0;
+	int screenHeight = 0;
+
+	Config(const Config&) = delete;
+	Config& operator=(const Config&) = delete;
+
+public:
+
+	Config() { }
+
+	static Config& GetInstance() {
+		static Config config;
+		return config;
+	}
+
+	void SetScreenWidth(int width) {
+		this->screenWidth = width;
+	}
+
+	void SetScreenHeight(int height) {
+		this->screenHeight = height;
+	}
+
+	int GetScreenWidth() const {
+		return screenWidth;
+	}
+
+	int GetScreenHeight() const {
+		return screenHeight;
+	}
+};
+
 class Image {
 public:
 	int width, height;

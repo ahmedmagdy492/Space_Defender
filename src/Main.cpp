@@ -1,6 +1,16 @@
 
 #include "Models.h"
 
+#define SCREEN_WIDTH 1366
+#define SCREEN_HEIGHT 768
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	Config& config = Config::GetInstance();
+	config.SetScreenWidth(width);
+	config.SetScreenHeight(height);
+	glViewport(0, 0, width, height);
+}
+
 
 int main(int argc, char* argv[]) {
 	glfwInit();
@@ -28,6 +38,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Config& config = Config::GetInstance();
+	config.SetScreenWidth(SCREEN_WIDTH);
+	config.SetScreenHeight(SCREEN_HEIGHT);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// init game objects
 	SceneManager sceneManager;

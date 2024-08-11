@@ -26,12 +26,15 @@ Player::Player(Vector3 position, Image* img) : health(100) {
 }
 
 void Player::Move(Vector3 velocity) {
+	Config& config = Config::GetInstance();
+
 	texture->position.x += velocity.x;
-	texture->position.y += velocity.y;
+	texture->position.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20;
 	texture->position.z += velocity.z;
 	texture->UpdateTexture(texture->position);
 
 	healthBar->rectangle->position.x = texture->position.x;
+	healthBar->rectangle->position.y = texture->position.y - HEALTH_BAR_HEIGHT - 10;
 	healthBar->Move(healthBar->rectangle->position);
 }
 
@@ -106,8 +109,10 @@ Level::Level(std::string name, bool isEndLevel) : name(name), isEndLevel(isEndLe
 }
 
 void Level::SpwanMonsters(int noOfMonsters, float health) {
+	Config& config = Config::GetInstance();
+
 	if (isEndLevel) {
-		Monster* monster = new Monster(Vector3((SCREEN_WIDTH - 200) / 2, 30, 0), health, monsterImg);
+		Monster* monster = new Monster(Vector3((config.GetScreenWidth() - 200) / 2, 30, 0), health, monsterImg);
 		monster->texture->width = BIG_BOSS_WIDTH;
 		monster->texture->height = BIG_BOSS_HEGIHT;
 		monster->texture->UpdateTexture(monster->texture->position);
@@ -121,7 +126,7 @@ void Level::SpwanMonsters(int noOfMonsters, float health) {
 			Monster* monster = new Monster(Vector3(x, y, 0), health, monsterImg);
 			monsters.push_back(monster);
 			x += xOffset + NORMAL_SHIP_WIDTH;
-			if (x >= SCREEN_WIDTH) {
+			if (x >= config.GetScreenWidth()) {
 				x = 30;
 				// we should consider creating a reasonable no of objects to do not fill the whole screen with monsters
 				y += NORMAL_SHIP_HEIGHT + spaceBetweenObjs;

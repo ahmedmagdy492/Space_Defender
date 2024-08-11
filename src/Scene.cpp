@@ -25,15 +25,17 @@ SceneManager::~SceneManager() {
 }
 
 MenuScene::MenuScene(SceneManager* sceneManager) {
+	Config& config = Config::GetInstance();
+
 	this->sceneManager = sceneManager;
 	bgImg = new Image();
 	bgImg->LoadImage("resources/bg.png");
-	bgTexture = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, bgImg, GL_TEXTURE2);
+	bgTexture = new Texture2D(Vector3(0, 0, 0), config.GetScreenWidth(), config.GetScreenHeight(), bgImg, GL_TEXTURE2);
 	bgTexture->Init();
 
 	titleImg = new Image();
 	titleImg->LoadImage("resources/title.png");
-	titleTexture = new Texture2D(Vector3((SCREEN_WIDTH - titleImg->width)/2, 100, 0), titleImg->width, titleImg->height, titleImg, GL_TEXTURE7);
+	titleTexture = new Texture2D(Vector3((config.GetScreenWidth() - titleImg->width) / 2, 100, 0), titleImg->width, titleImg->height, titleImg, GL_TEXTURE7);
 	titleTexture->Init();
 
 	Init();
@@ -47,8 +49,8 @@ MenuScene::MenuScene(SceneManager* sceneManager) {
 	for (int i = 0; i < NO_OF_UI_BTNS; ++i) {
 		imgBtns[i] = new ImageButton(
 			Vector3(
-				(SCREEN_WIDTH - BTN_WIDTH) / 2,
-				(SCREEN_HEIGHT - BTN_HEIGHT) / 2 + yPadding,
+				(config.GetScreenWidth() - BTN_WIDTH) / 2,
+				(config.GetScreenHeight() - BTN_HEIGHT) / 2 + yPadding,
 				0.0f
 			), 
 			btnImgs[i], GL_TEXTURE5 + i);
@@ -88,17 +90,19 @@ void MenuScene::Init() {
 }
 
 void MenuScene::ProcessInput(GLFWwindow* window) {
+	Config& config = Config::GetInstance();
+
 	static bool isLeftMouseClicked = false;
 	if (!isLeftMouseClicked && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
 		isLeftMouseClicked = true;
 		double x = 0, y = 0;
 		glfwGetCursorPos(window, &x, &y);
 
-		if (IsObjectClicked(imgBtns[0]->texture->position, BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
+		if (IsObjectClicked(Vector3((config.GetScreenWidth() - BTN_WIDTH) / 2, (config.GetScreenHeight() - BTN_HEIGHT) / 2, 0), BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
 			std::string gameScene = "GameScene";
 			sceneManager->SwitchToScene(gameScene);
 		}
-		else if (IsObjectClicked(imgBtns[1]->texture->position, BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
+		else if (IsObjectClicked(Vector3((config.GetScreenWidth() - BTN_WIDTH) / 2, (config.GetScreenHeight() - BTN_HEIGHT) / 2 + BTN_HEIGHT + 30, 0), BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
 			glfwSetWindowShouldClose(window, true);
 		}
 	}
@@ -175,6 +179,8 @@ void GameScene::FillInGrenadesPools(int noOfGrenades = 50) {
 }
 
 void GameScene::ResetScene() {
+	Config& config = Config::GetInstance();
+
 	bulletsPool.clear();
 	bombsPool.clear();
 	bombs.clear();
@@ -184,8 +190,8 @@ void GameScene::ResetScene() {
 	player->ZeroHealth();
 	player->IncreaseHealth(100);
 	Vector3 playerPos;
-	playerPos.x = (SCREEN_WIDTH - PLAYER_SHIP_WIDTH) / 2;
-	playerPos.y = SCREEN_HEIGHT - PLAYER_SHIP_HEIGHT - 20;
+	playerPos.x = (config.GetScreenWidth() - PLAYER_SHIP_WIDTH) / 2;
+	playerPos.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20;
 	player->texture->position = playerPos;
 	player->healthBar->rectangle->UpdateShape(player->healthBar->rectangle->position);
 
@@ -226,9 +232,11 @@ void GameScene::Init() {
 		throw std::string("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
 	}
 
+	Config& config = Config::GetInstance();
+
 	Vector3 playerPos;
-	playerPos.x = (SCREEN_WIDTH - PLAYER_SHIP_WIDTH) / 2;
-	playerPos.y = SCREEN_HEIGHT - PLAYER_SHIP_HEIGHT - 20;
+	playerPos.x = (config.GetScreenWidth() - PLAYER_SHIP_WIDTH) / 2;
+	playerPos.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20;
 	player = new Player(playerPos, playerImg);
 
 	FillInBulletsPool();
@@ -240,10 +248,12 @@ void GameScene::Init() {
 }
 
 GameScene::GameScene(SceneManager* sceneManager) {
+	Config& config = Config::GetInstance();
+
 	this->sceneManager = sceneManager;
 	backgroundImg = new Image();
 	backgroundImg->LoadImage("resources/bg.png");
-	background = new Texture2D(Vector3(0, 0, 0), SCREEN_WIDTH, SCREEN_HEIGHT, backgroundImg, GL_TEXTURE2);
+	background = new Texture2D(Vector3(0, 0, 0), config.GetScreenWidth(), config.GetScreenHeight(), backgroundImg, GL_TEXTURE2);
 	background->Init();
 
 	minus10Img = new Image();
@@ -264,6 +274,8 @@ GameScene::GameScene(SceneManager* sceneManager) {
 }
 
 void GameScene::ProcessInput(GLFWwindow* window) {
+	Config& config = Config::GetInstance();
+
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		sceneManager->SwitchToScene("MenuScene");
 	}
@@ -277,7 +289,7 @@ void GameScene::ProcessInput(GLFWwindow* window) {
 	}
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 		currentKeyPress = GLFW_KEY_RIGHT;
-		if ((player->texture->position.x + player->texture->width) < SCREEN_WIDTH) {
+		if ((player->texture->position.x + player->texture->width) < config.GetScreenWidth()) {
 			Vector3 velocity(3.0f * 0.2f, 0.0f, 0.0f);
 			player->Move(velocity);
 		}
@@ -323,6 +335,8 @@ bool GameScene::BombCollidedWithPlayer(Vector3 bomb, Vector3 player) {
 }
 
 void GameScene::Render() {
+	Config& config = Config::GetInstance();
+
 	shaderProgram->Use();
 	shaderProgram->SetInt("inTexture", 2);
 	background->Draw();
@@ -376,7 +390,7 @@ void GameScene::Render() {
 		bomb->Move(velocity);
 		bomb->Render();
 
-		if ((bomb->texture->position.y + bomb->texture->height) > SCREEN_HEIGHT) {
+		if ((bomb->texture->position.y + bomb->texture->height) > config.GetScreenHeight()) {
 			bomb->texture->position = Vector3(-100.0f, -100.0f, 0.0f);
 			bomb->texture->UpdateTexture(bomb->texture->position);
 			bombsToRemove.push_back(bomb);
