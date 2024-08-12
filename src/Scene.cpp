@@ -1,4 +1,5 @@
 #include "Models.h"
+#include "MovementMechanisms.h"
 
 bool IsObjectClicked(Vector3 pos, int width, int height, Vector3 mousePos) {
 	return (mousePos.x >= pos.x && mousePos.x <= (pos.x + width)) && (mousePos.y >= pos.y && mousePos.y <= (pos.y + height));
@@ -35,7 +36,7 @@ MenuScene::MenuScene(SceneManager* sceneManager) {
 
 	titleImg = new Image();
 	titleImg->LoadImage("resources/title.png");
-	titleTexture = new Texture2D(Vector3((config.GetScreenWidth() - titleImg->width) / 2, 100, 0), titleImg->width, titleImg->height, titleImg, GL_TEXTURE7);
+	titleTexture = new Texture2D(Vector3((config.GetScreenWidth() - titleImg->width) / 2.0f, 100.0f, 0.0f), titleImg->width, titleImg->height, titleImg, GL_TEXTURE7);
 	titleTexture->Init();
 
 	Init();
@@ -49,8 +50,8 @@ MenuScene::MenuScene(SceneManager* sceneManager) {
 	for (int i = 0; i < NO_OF_UI_BTNS; ++i) {
 		imgBtns[i] = new ImageButton(
 			Vector3(
-				(config.GetScreenWidth() - BTN_WIDTH) / 2,
-				(config.GetScreenHeight() - BTN_HEIGHT) / 2 + yPadding,
+				(config.GetScreenWidth() - BTN_WIDTH) / 2.0f,
+				(config.GetScreenHeight() - BTN_HEIGHT) / 2.0f + yPadding,
 				0.0f
 			), 
 			btnImgs[i], GL_TEXTURE5 + i);
@@ -98,11 +99,11 @@ void MenuScene::ProcessInput(GLFWwindow* window) {
 		double x = 0, y = 0;
 		glfwGetCursorPos(window, &x, &y);
 
-		if (IsObjectClicked(Vector3((config.GetScreenWidth() - BTN_WIDTH) / 2, (config.GetScreenHeight() - BTN_HEIGHT) / 2, 0), BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
+		if (IsObjectClicked(Vector3((config.GetScreenWidth() - BTN_WIDTH) / 2.0f, (config.GetScreenHeight() - BTN_HEIGHT) / 2.0f, 0.0f), BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
 			std::string gameScene = "GameScene";
 			sceneManager->SwitchToScene(gameScene);
 		}
-		else if (IsObjectClicked(Vector3((config.GetScreenWidth() - BTN_WIDTH) / 2, (config.GetScreenHeight() - BTN_HEIGHT) / 2 + BTN_HEIGHT + 30, 0), BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
+		else if (IsObjectClicked(Vector3((config.GetScreenWidth() - BTN_WIDTH) / 2.0f, (config.GetScreenHeight() - BTN_HEIGHT) / 2.0f + BTN_HEIGHT + 30.0f, 0.0f), BTN_WIDTH, BTN_HEIGHT, Vector3((float)x, (float)y, 0.0f))) {
 			glfwSetWindowShouldClose(window, true);
 		}
 	}
@@ -167,6 +168,7 @@ MenuScene::~MenuScene() {
 void GameScene::FillInBulletsPool(int noOfBullets = 100) {
 	for (int i = 0; i < noOfBullets; ++i) {
 		Bullet* bullet = new Bullet(player->texture->position, BULLET_POWER_LVL1, bulletImg);
+		bullet->power = player->shootPower;
 		bulletsPool.push_back(bullet);
 	}
 }
@@ -187,11 +189,12 @@ void GameScene::ResetScene() {
 	bullets.clear();
 	currentLevel->monsters.clear();
 
+	player->ResetScore();
 	player->ZeroHealth();
-	player->IncreaseHealth(100);
+	player->IncreaseHealth(150);
 	Vector3 playerPos;
-	playerPos.x = (config.GetScreenWidth() - PLAYER_SHIP_WIDTH) / 2;
-	playerPos.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20;
+	playerPos.x = (config.GetScreenWidth() - PLAYER_SHIP_WIDTH) / 2.0f;
+	playerPos.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20.0f;
 	player->texture->position = playerPos;
 	player->healthBar->rectangle->UpdateShape(player->healthBar->rectangle->position);
 
@@ -235,9 +238,11 @@ void GameScene::Init() {
 	Config& config = Config::GetInstance();
 
 	Vector3 playerPos;
-	playerPos.x = (config.GetScreenWidth() - PLAYER_SHIP_WIDTH) / 2;
-	playerPos.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20;
+	playerPos.x = (config.GetScreenWidth() - PLAYER_SHIP_WIDTH) / 2.0f;
+	playerPos.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20.0f;
 	player = new Player(playerPos, playerImg);
+	playerImg->UnloadImage();
+	delete playerImg;
 
 	FillInBulletsPool();
 	FillInGrenadesPools(100);
@@ -255,11 +260,15 @@ GameScene::GameScene(SceneManager* sceneManager) {
 	backgroundImg->LoadImage("resources/bg.png");
 	background = new Texture2D(Vector3(0, 0, 0), config.GetScreenWidth(), config.GetScreenHeight(), backgroundImg, GL_TEXTURE2);
 	background->Init();
+	backgroundImg->UnloadImage();
+	delete backgroundImg;
 
 	minus10Img = new Image();
 	minus10Img->LoadImage("resources/minus_10.png");
 	minus10 = new Texture2D(Vector3(-50, -50, 0), 30, 30, minus10Img, GL_TEXTURE4);
 	minus10->Init();
+	minus10Img->UnloadImage();
+	delete minus10Img;
 
 	bulletImg = new Image();
 	bulletImg->LoadImageW("resources/bullet.png");
@@ -270,7 +279,29 @@ GameScene::GameScene(SceneManager* sceneManager) {
 	grenadeImg = new Image();
 	grenadeImg->LoadImage("resources/bomb.png");
 
+	explodeImg = new Image();
+	explodeImg->LoadImage("resources/explode.png");
+	explodeTexture = new Texture2D(Vector3(-100.0f, -100.0f, 0.0f), NORMAL_SHIP_WIDTH, NORMAL_SHIP_HEIGHT, explodeImg, GL_TEXTURE9);
+	explodeTexture->Init();
+	explodeImg->UnloadImage();
+	delete explodeImg;
+
 	Init();
+
+	bulletLv2Img = new Image();
+	bulletLv2Img->LoadImage("resources/bullet_lv2.png");
+	bulletLv2Texture = new Texture2D(player->texture->position, BULLET_WIDTH, BULLET_HEIGHT, bulletLv2Img, GL_TEXTURE10);
+	bulletLv2Texture->Init();
+	bulletLv2Img->UnloadImage();
+	delete bulletLv2Img;
+}
+
+void GameScene::ShootBullet(Vector3 bulletTriggerPos) {
+	Bullet* bullet = bulletsPool[bulletsPool.size() - 1];
+	bulletsPool.erase(bulletsPool.begin() + (bulletsPool.size() - 1));
+	bullet->texture->position = bulletTriggerPos;
+	bullet->texture->UpdateTexture(player->texture->position);
+	bullets.push_back(bullet);
 }
 
 void GameScene::ProcessInput(GLFWwindow* window) {
@@ -300,11 +331,41 @@ void GameScene::ProcessInput(GLFWwindow* window) {
 		currentKeyPress = GLFW_KEY_SPACE;
 		if (bulletsPool.size() > 0 && lastShootTime != time) {
 			lastShootTime = time;
-			Bullet* bullet = bulletsPool[bulletsPool.size()-1];
-			bulletsPool.erase(bulletsPool.begin() + (bulletsPool.size() - 1));
-			bullet->texture->position = player->texture->position;
-			bullet->texture->UpdateTexture(player->texture->position);
-			bullets.push_back(bullet);
+			switch (player->currentShootingSkill) {
+				case PlayerShootingSkills::DualShootingLevel1: {
+					ShootBullet(player->texture->position);
+					ShootBullet(Vector3(player->texture->position.x + PLAYER_SHIP_WIDTH - BULLET_WIDTH, player->texture->position.y, player->texture->position.z));
+					break;
+				}
+				case PlayerShootingSkills::TripleShootingLevel1: {
+					ShootBullet(player->texture->position);
+					ShootBullet(Vector3(
+						player->texture->position.x + ((PLAYER_SHIP_WIDTH - BULLET_WIDTH) / 2),
+						player->texture->position.y, 
+						player->texture->position.z)
+					);
+					ShootBullet(Vector3(player->texture->position.x + PLAYER_SHIP_WIDTH - BULLET_WIDTH, player->texture->position.y, player->texture->position.z));
+					break;
+				}
+				case PlayerShootingSkills::SingleShootingLevel2: {
+					ShootBullet(player->texture->position);
+					break;
+				}
+				case PlayerShootingSkills::DualShootingLevel2: {
+					ShootBullet(player->texture->position);
+					ShootBullet(Vector3(player->texture->position.x + PLAYER_SHIP_WIDTH - BULLET_WIDTH, player->texture->position.y, player->texture->position.z));
+					break;
+				}
+				default: {
+					ShootBullet(Vector3(
+						player->texture->position.x + ((PLAYER_SHIP_WIDTH - BULLET_WIDTH) / 2),
+						player->texture->position.y,
+						player->texture->position.z)
+					);
+					ShootBullet(Vector3(player->texture->position.x + PLAYER_SHIP_WIDTH - BULLET_WIDTH, player->texture->position.y, player->texture->position.z));
+					break;
+				}
+			}
 		}
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) {
@@ -371,7 +432,7 @@ void GameScene::Render() {
 		bullets.clear();
 		bombs.clear();
 		delete currentLevel;
- 		if ((levelsFinished % 10) == 0) {
+ 		if ((levelsFinished % 1) == 0) {
 			currentLevel = new Level("Level", true);
 			currentLevel->SpwanMonsters(1, LEVEL_10_MONSTERS_POWER * levelsFinished);
 		}
@@ -384,7 +445,12 @@ void GameScene::Render() {
 		std::cout << "Changed to level " << levelsFinished << std::endl;
 	}
 
-	shaderProgram->SetInt("inTexture", 8);
+	if (currentLevel->isEndLevel) {
+		shaderProgram->SetInt("inTexture", 9);
+	}
+	else {
+		shaderProgram->SetInt("inTexture", 8);
+	}
 	for (auto& bomb : bombs) {
 		Vector3 velocity(0.0f, 5.0f * 0.2f, 0.0f);
 		bomb->Move(velocity);
@@ -412,7 +478,15 @@ void GameScene::Render() {
 		}
 	}
 
-	shaderProgram->SetInt("inTexture", 1);
+	switch (player->currentShootingSkill) {
+	case PlayerShootingSkills::DualShootingLevel1:
+	case PlayerShootingSkills::TripleShootingLevel1:
+		shaderProgram->SetInt("inTexture", 1);
+		break;
+	default:
+		shaderProgram->SetInt("inTexture", 10);
+		break;
+	}
 	for (auto& bullet : bullets) {
 		bullet->Render();
 		Vector3 velocity(0.0f, -3.0f * 0.2f, 0.0f);
@@ -429,6 +503,8 @@ void GameScene::Render() {
 						monstersToRemove.push_back(monster);
 					}
 					else {
+						player->IncreaseScore();
+						std::cout << "Player Score: " << player->GetCurrentPlayerScore() << std::endl;
 						minus10->position = monster->texture->position;
 						minus10->UpdateTexture(minus10->position);
 					}
@@ -443,16 +519,33 @@ void GameScene::Render() {
 
 	shaderProgram->SetInt("inTexture", 0);
 	player->Render();
+
 	shaderProgram->SetBool("isShape", true);
 	shaderProgram->SetVector3("shapeColor", Vector3(player->healthBar->color.red, player->healthBar->color.green, player->healthBar->color.blue));
 	player->healthBar->Render();
 	shaderProgram->SetBool("isShape", false);
 
 	shaderProgram->SetInt("inTexture", 3);
+	int counter = 0;
 	for (auto& monster : currentLevel->monsters) {
-		Vector3 velocity(.5f*.2f, 0.0f, 0.0f);
-		monster->Move(velocity);
-		monster->Render();
+		if ((levelsFinished % 3) == 0 && !currentLevel->isEndLevel) {
+			if ((counter % 2) == 0) {
+				Vector3 velocity(.5f * .3f, 0.0f, 0.0f);
+				monster->Move(velocity, MoveInOppositeDirections);
+				monster->Render();
+			}
+			else {
+				Vector3 velocity(.5f * .2f, 0.0f, 0.0f);
+				monster->Move(velocity, MoveLeftToRightAndViceVersa);
+				monster->Render();
+			}
+		}
+		else {
+			Vector3 velocity(.5f * .2f, 0.0f, 0.0f);
+			monster->Move(velocity, MoveLeftToRightAndViceVersa);
+			monster->Render();
+		}
+		++counter;
 	}
 
 	int time = (int)glfwGetTime();
@@ -464,7 +557,11 @@ void GameScene::Render() {
 			bombsPool.erase(bombsPool.begin() + (bombsPool.size() - 1));
 			srand(time);
 			int randMonsterIndex = rand() % currentLevel->monsters.size();
-			bomb->texture->position = currentLevel->monsters[randMonsterIndex]->texture->position;
+			bomb->texture->position = Vector3(
+				currentLevel->monsters[randMonsterIndex]->texture->position.x + ((NORMAL_SHIP_WIDTH - GRENADE_WIDTH) / 2),
+				currentLevel->monsters[randMonsterIndex]->texture->position.y,
+				currentLevel->monsters[randMonsterIndex]->texture->position.z
+			);
 			bomb->texture->UpdateTexture(bomb->texture->position);
 			bombs.push_back(bomb);
 		}
@@ -500,20 +597,10 @@ GameScene::~GameScene() {
 	}
 
 	if (background) {
-		if (backgroundImg) {
-			backgroundImg->UnloadImage();
-			delete backgroundImg;
-		}
-
 		delete background;
 	}
 
 	if (minus10) {
-		if (minus10Img) {
-			minus10Img->UnloadImage();
-			delete minus10Img;
-		}
-
 		delete minus10;
 	}
 
@@ -531,6 +618,15 @@ GameScene::~GameScene() {
 		grenadeImg->UnloadImage();
 		delete grenadeImg;
 	}
+
+	if (explodeTexture) {
+		delete explodeTexture;
+	}
+
+	if (bulletLv2Texture) {
+		delete bulletLv2Texture;
+	}
+	
 
 	if (currentLevel) {
 		delete currentLevel;

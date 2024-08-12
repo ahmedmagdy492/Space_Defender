@@ -153,6 +153,7 @@
     <ClInclude Include="include\KHR\khrplatform.h" />
     <ClInclude Include="include\stb_image\stb_image.h" />
     <ClInclude Include="src\Models.h" />
+    <ClInclude Include="src\MovementMechanisms.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\default_fragment_shader.frag" />

@@ -19,7 +19,7 @@ HealthBar::~HealthBar() {
 	}
 }
 
-Player::Player(Vector3 position, Image* img) : health(100) {
+Player::Player(Vector3 position, Image* img) : health(150) {
 	texture = new Texture2D(position, PLAYER_SHIP_WIDTH, PLAYER_SHIP_HEIGHT, img, GL_TEXTURE0);
 	texture->Init();
 	healthBar = new HealthBar(Vector3(position.x, position.y - HEALTH_BAR_HEIGHT - 10, 0.0f), health);
@@ -29,12 +29,12 @@ void Player::Move(Vector3 velocity) {
 	Config& config = Config::GetInstance();
 
 	texture->position.x += velocity.x;
-	texture->position.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20;
+	texture->position.y = config.GetScreenHeight() - PLAYER_SHIP_HEIGHT - 20.0f;
 	texture->position.z += velocity.z;
 	texture->UpdateTexture(texture->position);
 
 	healthBar->rectangle->position.x = texture->position.x;
-	healthBar->rectangle->position.y = texture->position.y - HEALTH_BAR_HEIGHT - 10;
+	healthBar->rectangle->position.y = texture->position.y - HEALTH_BAR_HEIGHT - 10.0f;
 	healthBar->Move(healthBar->rectangle->position);
 }
 
@@ -79,28 +79,8 @@ void Monster::Render() {
 	texture->Draw();
 }
 
-void Monster::Move(Vector3 velocity) {
-	if (direction == MonsterMovingDirection::Right) {
-		if (texture->position.x <= (initialPos.x + (velocity.x * 5005))) {
-			texture->position.x += velocity.x;
-			texture->position.y += velocity.y;
-			texture->position.z += velocity.z;
-		}
-		else {
-			direction = MonsterMovingDirection::Left;
-		}
-	}
-	else if (direction == MonsterMovingDirection::Left) {
-		if (texture->position.x >= (initialPos.x - (velocity.x * 5005))) {
-			texture->position.x -= velocity.x;
-			texture->position.y -= velocity.y;
-			texture->position.z -= velocity.z;
-		}
-		else {
-			direction = MonsterMovingDirection::Right;
-		}
-	}
-	texture->UpdateTexture(texture->position);
+void Monster::Move(Vector3 velocity, void (*MovementMechanism)(Monster* monster, Vector3 velocity)) {
+	MovementMechanism(this, velocity);
 }
 
 Level::Level(std::string name, bool isEndLevel) : name(name), isEndLevel(isEndLevel) {
@@ -112,7 +92,7 @@ void Level::SpwanMonsters(int noOfMonsters, float health) {
 	Config& config = Config::GetInstance();
 
 	if (isEndLevel) {
-		Monster* monster = new Monster(Vector3((config.GetScreenWidth() - 200) / 2, 30, 0), health, monsterImg);
+		Monster* monster = new Monster(Vector3((config.GetScreenWidth() - 200.0f) / 2.0f, 30.0f, 0.0f), health, monsterImg);
 		monster->texture->width = BIG_BOSS_WIDTH;
 		monster->texture->height = BIG_BOSS_HEGIHT;
 		monster->texture->UpdateTexture(monster->texture->position);

@@ -1,6 +1,6 @@
 #pragma once
 
-#define PLAYER_SHIP_WIDTH  50
+#define PLAYER_SHIP_WIDTH  80
 #define PLAYER_SHIP_HEIGHT 50
 
 #define NORMAL_SHIP_WIDTH  50
@@ -15,11 +15,11 @@
 #define GRENADE_WIDTH 35
 #define GRENADE_HEIGHT 25
 
-#define BULLET_POWER_LVL1 10
-#define BULLET_POWER_LVL2 20
-#define BULLET_POWER_LVL3 30
-#define BULLET_POWER_LVL4 40
-#define BULLET_POWER_LVL5 50
+#define BULLET_POWER_LVL1 10.0f
+#define BULLET_POWER_LVL2 20.0f
+#define BULLET_POWER_LVL3 30.0f
+#define BULLET_POWER_LVL4 40.0f
+#define BULLET_POWER_LVL5 50.0f
 
 #define BOMB_POWER_LVL1 10
 #define BOMB_POWER_LVL2 20
@@ -27,8 +27,8 @@
 #define BOMB_POWER_LVL4 40
 #define BOMB_POWER_LVL5 50
 
-#define LEVEL_1_MONSTERS_POWER 20
-#define LEVEL_10_MONSTERS_POWER 5200
+#define LEVEL_1_MONSTERS_POWER 20.0f
+#define LEVEL_10_MONSTERS_POWER 5200.0f
 
 #define NO_OF_MONSTERS 50
 
@@ -50,6 +50,18 @@ struct Color {
 
 	Color(float red, float green, float blue) : red(red), green(green), blue(blue), alpha(1.0f) {
 
+	}
+};
+
+struct Vector2 {
+	float x;
+	float y;
+
+	Vector2() : x(0), y(0) {
+
+	}
+
+	Vector2(float x, float y) : x(x), y(y) {
 	}
 };
 

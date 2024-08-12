@@ -240,12 +240,23 @@ public:
 	~HealthBar();
 };
 
+enum PlayerShootingSkills {
+	DualShootingLevel1,
+	TripleShootingLevel1,
+	SingleShootingLevel2,
+	DualShootingLevel2,
+	TripleShootingLevel2
+};
+
 class Player {
 private:
 	unsigned int health;
 	unsigned int score = 0;
 
 public:
+	PlayerShootingSkills currentShootingSkill = PlayerShootingSkills::DualShootingLevel1;
+	unsigned int shootPower = BULLET_POWER_LVL1;
+
 	Texture2D* texture = nullptr;
 	HealthBar* healthBar = nullptr;
 
@@ -273,6 +284,40 @@ public:
 		healthBar->rectangle->width = 0;
 	}
 
+	void ResetScore() {
+		score = 0;
+		currentShootingSkill = PlayerShootingSkills::DualShootingLevel1;
+		unsigned int shootPower = (int)BULLET_POWER_LVL1;
+	}
+
+	void IncreaseScore() {
+		++score;
+		if (score < 25) {
+			currentShootingSkill = PlayerShootingSkills::DualShootingLevel1;
+			unsigned int shootPower = (int)BULLET_POWER_LVL1;
+		}
+		else if (score >= 25 && score <= 74) {
+			currentShootingSkill = PlayerShootingSkills::TripleShootingLevel1;
+			unsigned int shootPower = (int)BULLET_POWER_LVL1;
+		}
+		else if (score >= 75 && score <= 149) {
+			currentShootingSkill = PlayerShootingSkills::SingleShootingLevel2;
+			unsigned int shootPower = (int)BULLET_POWER_LVL2;
+		}
+		else if (score >= 150 && score <= 299) {
+			currentShootingSkill = PlayerShootingSkills::DualShootingLevel2;
+			unsigned int shootPower = (int)BULLET_POWER_LVL2;
+		}
+		else {
+			currentShootingSkill = PlayerShootingSkills::TripleShootingLevel2;
+			unsigned int shootPower = (int)BULLET_POWER_LVL2;
+		}
+	}
+
+	unsigned int GetCurrentPlayerScore() {
+		return score;
+	}
+
 	void Move(Vector3 velocity);
 
 	void Render();
@@ -294,7 +339,9 @@ public:
 
 enum MonsterMovingDirection {
 	Right,
-	Left
+	Left,
+	Up,
+	Down
 };
 
 class Monster {
@@ -308,7 +355,7 @@ public:
 
 	void Render();
 
-	void Move(Vector3 velocity);
+	void Move(Vector3 velocity, void (*MovementMechanism)(Monster* monster, Vector3 velocity));
 };
 
 class Level {
@@ -446,6 +493,12 @@ private:
 
 	Image* grenadeImg = nullptr;
 
+	Image* explodeImg = nullptr;
+	Texture2D* explodeTexture = nullptr;
+
+	Image* bulletLv2Img = nullptr;
+	Texture2D* bulletLv2Texture = nullptr;
+
 	SceneManager* sceneManager = nullptr;
 
 	void FillInBulletsPool(int noOfBullets);
@@ -459,6 +512,8 @@ private:
 
 public:
 	GameScene(SceneManager* sceneManager);
+
+	void ShootBullet(Vector3 bulletTriggerPos);
 
 	void Init();
 
