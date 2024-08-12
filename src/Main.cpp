@@ -26,6 +26,9 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
+	// enabling v-sync
+	glfwSwapInterval(1);
+
 	HWND windowHandle = glfwGetWin32Window(window);
 	SetWindowLongPtr(windowHandle, GWL_STYLE, GetWindowLongPtrA(windowHandle, GWL_STYLE) & ~(WS_MAXIMIZEBOX | WS_THICKFRAME));
 
