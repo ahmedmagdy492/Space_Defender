@@ -10,6 +10,8 @@ SceneManager::SceneManager() {
 	scenes.insert({ "GameScene", gameScene });
 	MenuScene* menuScene = new MenuScene(this);
 	scenes.insert({ "MenuScene", menuScene });
+	TransitionScene* transitionScene = new TransitionScene(this);
+	scenes.insert({ "TransitionScene", transitionScene });
 	currentActiveScene = menuScene;
 }
 
@@ -23,6 +25,7 @@ void SceneManager::SwitchToScene(const std::string& sceneName) {
 SceneManager::~SceneManager() {
 	delete scenes["GameScene"];
 	delete scenes["MenuScene"];
+	delete scenes["TransitionScene"];
 }
 
 MenuScene::MenuScene(SceneManager* sceneManager) {
@@ -60,7 +63,6 @@ MenuScene::MenuScene(SceneManager* sceneManager) {
 }
 
 void MenuScene::Init() {
-
 	try {
 		std::ifstream vertexIfStream;
 		std::ifstream fragmentIfStream;
@@ -202,7 +204,7 @@ void GameScene::ResetScene() {
 	FillInGrenadesPools(100);
 
 	// TODO: need to adjust the monsters power here
-	currentLevel->SpwanMonsters(50, LEVEL_1_MONSTERS_POWER);
+	currentLevel->SpwanMonsters(20, LEVEL_1_MONSTERS_POWER);
 }
 
 
@@ -248,7 +250,7 @@ void GameScene::Init() {
 	FillInGrenadesPools(100);
 
 	currentLevel = new Level("Level", false);
-	currentLevel->SpwanMonsters(50, LEVEL_1_MONSTERS_POWER);
+	currentLevel->SpwanMonsters(20, LEVEL_1_MONSTERS_POWER);
 	levelsFinished++;
 }
 
@@ -281,10 +283,17 @@ GameScene::GameScene(SceneManager* sceneManager) {
 
 	explodeImg = new Image();
 	explodeImg->LoadImage("resources/explode.png");
-	explodeTexture = new Texture2D(Vector3(-100.0f, -100.0f, 0.0f), NORMAL_SHIP_WIDTH, NORMAL_SHIP_HEIGHT, explodeImg, GL_TEXTURE9);
+	explodeTexture = new Texture2D(Vector3(-100.0f, -100.0f, 0.0f), GRENADE_WIDTH, GRENADE_HEIGHT, explodeImg, GL_TEXTURE9);
 	explodeTexture->Init();
 	explodeImg->UnloadImage();
 	delete explodeImg;
+
+	bigBossImg = new Image();
+	bigBossImg->LoadImage("resources/bigboss.png");
+	bigBossTexture = new Texture2D(Vector3(0.0f, 0.0f, 0.0f), BIG_BOSS_WIDTH, BIG_BOSS_HEGIHT, bigBossImg, GL_TEXTURE11);
+	bigBossTexture->Init();
+	bigBossImg->UnloadImage();
+	delete bigBossImg;
 
 	Init();
 
@@ -402,7 +411,7 @@ void GameScene::Render() {
 	shaderProgram->SetInt("inTexture", 2);
 	background->Draw();
 
-	for (auto& bombToRemove : bombsToRemove) {
+	for (auto bombToRemove : bombsToRemove) {
 		std::vector<Grenade*>::iterator it = std::find(bombs.begin(), bombs.end(), bombToRemove);
 		if (it != bombs.end()) {
 			bombs.erase(it);
@@ -411,7 +420,7 @@ void GameScene::Render() {
 	}
 	bombsToRemove.clear();
 
-	for (auto& monsterToBeRemoved : monstersToRemove) {
+	for (auto monsterToBeRemoved : monstersToRemove) {
 		std::vector<Monster*>::iterator it = std::find(currentLevel->monsters.begin(), currentLevel->monsters.end(), monsterToBeRemoved);
 		if (it != currentLevel->monsters.end()) {
 			currentLevel->monsters.erase(it);
@@ -419,7 +428,7 @@ void GameScene::Render() {
 	}
 	monstersToRemove.clear();
 
-	for (auto& bulletToRemove : bulletsToRemove) {
+	for (auto bulletToRemove : bulletsToRemove) {
 		std::vector<Bullet*>::iterator it = std::find(bullets.begin(), bullets.end(), bulletToRemove);
 		if (it != bullets.end()) {
 			bullets.erase(it);
@@ -432,7 +441,7 @@ void GameScene::Render() {
 		bullets.clear();
 		bombs.clear();
 		delete currentLevel;
- 		if ((levelsFinished % 1) == 0) {
+ 		if ((levelsFinished % 5) == 0) {
 			currentLevel = new Level("Level", true);
 			currentLevel->SpwanMonsters(1, LEVEL_10_MONSTERS_POWER * levelsFinished);
 		}
@@ -442,7 +451,7 @@ void GameScene::Render() {
 		}
 
 		++levelsFinished;
-		std::cout << "Changed to level " << levelsFinished << std::endl;
+		sceneManager->SwitchToScene("TransitionScene");
 	}
 
 	if (currentLevel->isEndLevel) {
@@ -451,7 +460,7 @@ void GameScene::Render() {
 	else {
 		shaderProgram->SetInt("inTexture", 8);
 	}
-	for (auto& bomb : bombs) {
+	for (auto bomb : bombs) {
 		Vector3 velocity(0.0f, 5.0f * 0.2f, 0.0f);
 		bomb->Move(velocity);
 		bomb->Render();
@@ -487,7 +496,7 @@ void GameScene::Render() {
 		shaderProgram->SetInt("inTexture", 10);
 		break;
 	}
-	for (auto& bullet : bullets) {
+	for (auto bullet : bullets) {
 		bullet->Render();
 		Vector3 velocity(0.0f, -3.0f * 0.2f, 0.0f);
 		bullet->Move(velocity);
@@ -496,7 +505,7 @@ void GameScene::Render() {
 			bulletsToRemove.push_back(bullet);
 		}
 		else {
-			for (auto& monster : currentLevel->monsters) {
+			for (auto monster : currentLevel->monsters) {
 				if (BulletCollidedWithMonster(bullet->texture->position, monster->texture->position)) {
 					monster->health -= bullet->power;
 					if (monster->health <= 0) {
@@ -525,9 +534,14 @@ void GameScene::Render() {
 	player->healthBar->Render();
 	shaderProgram->SetBool("isShape", false);
 
-	shaderProgram->SetInt("inTexture", 3);
+	if (!currentLevel->isEndLevel) {
+		shaderProgram->SetInt("inTexture", 3);
+	}
+	else {
+		shaderProgram->SetInt("inTexture", 11);
+	}
 	int counter = 0;
-	for (auto& monster : currentLevel->monsters) {
+	for (auto monster : currentLevel->monsters) {
 		if ((levelsFinished % 3) == 0 && !currentLevel->isEndLevel) {
 			if ((counter % 2) == 0) {
 				Vector3 velocity(.5f * .3f, 0.0f, 0.0f);
@@ -542,7 +556,7 @@ void GameScene::Render() {
 		}
 		else {
 			Vector3 velocity(.5f * .2f, 0.0f, 0.0f);
-			monster->Move(velocity, MoveLeftToRightAndViceVersa);
+			monster->Move(velocity, MoveLeftToRightForEndLevel);
 			monster->Render();
 		}
 		++counter;
@@ -557,11 +571,20 @@ void GameScene::Render() {
 			bombsPool.erase(bombsPool.begin() + (bombsPool.size() - 1));
 			srand(time);
 			int randMonsterIndex = rand() % currentLevel->monsters.size();
-			bomb->texture->position = Vector3(
-				currentLevel->monsters[randMonsterIndex]->texture->position.x + ((NORMAL_SHIP_WIDTH - GRENADE_WIDTH) / 2),
-				currentLevel->monsters[randMonsterIndex]->texture->position.y,
-				currentLevel->monsters[randMonsterIndex]->texture->position.z
-			);
+			if (!currentLevel->isEndLevel) {
+				bomb->texture->position = Vector3(
+					currentLevel->monsters[randMonsterIndex]->texture->position.x + ((NORMAL_SHIP_WIDTH - GRENADE_WIDTH) / 2),
+					currentLevel->monsters[randMonsterIndex]->texture->position.y,
+					currentLevel->monsters[randMonsterIndex]->texture->position.z
+				);
+			}
+			else {
+				bomb->texture->position = Vector3(
+					currentLevel->monsters[randMonsterIndex]->texture->position.x + ((BIG_BOSS_WIDTH - GRENADE_WIDTH) / 2),
+					currentLevel->monsters[randMonsterIndex]->texture->position.y,
+					currentLevel->monsters[randMonsterIndex]->texture->position.z
+				);
+			}
 			bomb->texture->UpdateTexture(bomb->texture->position);
 			bombs.push_back(bomb);
 		}
@@ -582,14 +605,14 @@ GameScene::~GameScene() {
 	delete player;
 	player = nullptr;
 
-	for (auto& bullet : bulletsPool) {
+	for (auto bullet : bulletsPool) {
 		if (bullet) {
 			delete bullet;
 			bullet = nullptr;
 		}
 	}
 
-	for (auto& bomb : bombsPool) {
+	for (auto bomb : bombsPool) {
 		if (bomb) {
 			delete bomb;
 			bomb = nullptr;
@@ -627,8 +650,89 @@ GameScene::~GameScene() {
 		delete bulletLv2Texture;
 	}
 	
+	if (bigBossTexture) {
+		delete bigBossTexture;
+	}
 
 	if (currentLevel) {
 		delete currentLevel;
+	}
+}
+
+
+
+TransitionScene::TransitionScene(SceneManager* sceneManager) {
+	Config& config = Config::GetInstance();
+
+	this->sceneManager = sceneManager;
+	nextLevelImg = new Image();
+	nextLevelImg->LoadImage("resources/transition_scene.png");
+	nextLevelTexture = new Texture2D(Vector3((config.GetScreenWidth() - nextLevelImg->width) / 2.0f, (config.GetScreenHeight() - nextLevelImg->height) / 2.0f, 0.0f), nextLevelImg->width, nextLevelImg->height, nextLevelImg, GL_TEXTURE12);
+	nextLevelTexture->Init();
+	nextLevelImg->UnloadImage();
+	delete nextLevelImg;
+
+	Image* pressEnterImg = new Image();
+	pressEnterImg->LoadImage("resources/press_enter.png");
+	pressEnterTexture = new Texture2D(Vector3((config.GetScreenWidth() - pressEnterImg->width) / 2.0f, (config.GetScreenHeight() - pressEnterImg->height) / 2.0f + nextLevelTexture->height + 10, 0.0f), pressEnterImg->width, pressEnterImg->height, pressEnterImg, GL_TEXTURE13);
+	pressEnterTexture->Init();
+	pressEnterImg->UnloadImage();
+	delete pressEnterImg;
+
+	Init();
+}
+
+void TransitionScene::Init() {
+	try {
+		std::ifstream vertexIfStream;
+		std::ifstream fragmentIfStream;
+		vertexIfStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		fragmentIfStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+		vertexIfStream.open("shaders/texture_vertex_shader.vert");
+		fragmentIfStream.open("shaders/texture_fragment_shader.frag");
+		std::stringstream vertexStrStream, fragmentStrStream;
+
+		vertexStrStream << vertexIfStream.rdbuf();
+		fragmentStrStream << fragmentIfStream.rdbuf();
+
+		std::string vertexShaderSrc = vertexStrStream.str();
+		std::string fragmentShaderSrc = fragmentStrStream.str();
+
+		vertexIfStream.close();
+		fragmentIfStream.close();
+
+		shaderProgram = new ShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+
+		std::cout << "Shader Program Created: " << shaderProgram->GetProgramId() << std::endl;
+	}
+	catch (std::ifstream::failure e) {
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+		throw std::string("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
+	}
+}
+
+void TransitionScene::ProcessInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
+		sceneManager->SwitchToScene("GameScene");
+	}
+}
+
+void TransitionScene::Render() {
+	shaderProgram->Use();
+	shaderProgram->SetInt("inTexture", 12);
+	nextLevelTexture->Draw();
+
+	shaderProgram->SetInt("inTexture", 13);
+	pressEnterTexture->Draw();
+}
+
+TransitionScene::~TransitionScene() {
+	if (nextLevelTexture) {
+		delete nextLevelTexture;
+	}
+
+	if (pressEnterTexture) {
+		delete pressEnterTexture;
 	}
 }

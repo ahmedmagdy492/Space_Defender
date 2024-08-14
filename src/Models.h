@@ -496,6 +496,9 @@ private:
 	Image* explodeImg = nullptr;
 	Texture2D* explodeTexture = nullptr;
 
+	Image* bigBossImg = nullptr;
+	Texture2D* bigBossTexture = nullptr;
+
 	Image* bulletLv2Img = nullptr;
 	Texture2D* bulletLv2Texture = nullptr;
 
@@ -522,4 +525,27 @@ public:
 	void Render();
 
 	~GameScene();
+};
+
+class TransitionScene : public Scene {
+private:
+	ShaderProgram* shaderProgram = nullptr;
+	unsigned int currentKeyPress = 0;
+
+	Image* nextLevelImg = nullptr;
+	Texture2D* nextLevelTexture = nullptr;
+	Texture2D* pressEnterTexture = nullptr;
+
+	SceneManager* sceneManager = nullptr;
+
+public:
+	TransitionScene(SceneManager* sceneManager);
+
+	void Init();
+
+	void ProcessInput(GLFWwindow* window);
+
+	void Render();
+
+	~TransitionScene();
 };
