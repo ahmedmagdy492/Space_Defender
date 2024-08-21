@@ -15,6 +15,11 @@ is a Space Invaders like game which aims at defending space from invaders.
 <li>Text Rendering is not yet supported so i use textures mainly for rendering any text on the screen</li>
 <li>No audio support yet</li>
 </ul>
+<h3>Newly Added</h3>
+<ul>
+<li>Added more diversity to levels by making the monsters move more flexiable and changes frequently</li>
+<li>Added a simple shooting system that gets upgraded while you are progrressing in the game</li>
+<li>Added a transition screen between levels</li>
+</ul>
 
-<p>Here is the youtube link for the demo</p>
-<a href="https://youtu.be/k5UHY37cf-I">Youtube Link</a>
+<p>Here is the youtube <a href="https://youtu.be/k5UHY37cf-I">link</a> for the demo</p>
